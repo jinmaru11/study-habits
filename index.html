@@ -53,17 +53,38 @@ button {
 
 <body>
 
-<header>Study Habits</header>
+<body>
 
-<div class="card">
-  <div>現在の成長スコア</div>
-  <div class="score" id="score">1.00</div>
-  <div>過去最高：<span id="best">1.00</span></div>
-</div>
+<header style="background:#b00020;color:white;padding:16px;text-align:center;">
+  <h1>Study Habits</h1>
+</header>
 
-<div class="card" id="questionArea"></div>
+<main style="padding:16px;max-width:600px;margin:auto;">
 
-<button onclick="nextQuestion()">次へ</button>
+  <!-- 成長スコア -->
+  <section style="background:#fff;padding:16px;border-radius:12px;margin-bottom:16px;">
+    <div>現在の成長スコア</div>
+    <div id="currentScore" style="font-size:32px;color:#b00020;">1.00</div>
+    <div>過去最高：<span id="maxScore">1.00</span></div>
+  </section>
+
+  <!-- 問題表示 -->
+  <section style="background:#fff;padding:16px;border-radius:12px;margin-bottom:16px;">
+    <div id="questionText" style="font-size:18px;margin-bottom:12px;">
+      問題がここに表示されます
+    </div>
+
+    <div id="choices" style="display:flex;flex-direction:column;gap:8px;">
+      <!-- 選択肢ボタンがJSで生成される -->
+    </div>
+  </section>
+
+  <button onclick="nextQuestion()"
+    style="width:100%;padding:16px;font-size:18px;background:#b00020;color:white;border:none;border-radius:12px;">
+    次へ
+  </button>
+
+</main>
 
 <script>
 <script>
