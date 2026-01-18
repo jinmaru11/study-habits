@@ -85,6 +85,14 @@ button {
 </main>
 
 <script>
+const today = new Date().toISOString().slice(0,10);
+const lastStudyDate = localStorage.getItem("lastStudyDate");
+
+if (lastStudyDate && lastStudyDate !== today) {
+  localStorage.setItem("growthScore", 0);
+  growthScore = 0;
+}
+  
 /* ========= 初期設定 ========= */
 let questions = JSON.parse(localStorage.getItem("questions")) || [
   {
@@ -182,6 +190,7 @@ function completeToday() {
     maxScore = Math.max(maxScore, growthScore);
     localStorage.setItem("growthScore", growthScore);
     localStorage.setItem("maxScore", maxScore);
+    localStorage.setItem("lastStudyDate", new Date().toISOString().slice(0,10));
     todayAnswered = true;
   }
 
