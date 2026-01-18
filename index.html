@@ -53,8 +53,6 @@ button {
 
 <body>
 
-<body>
-
 <header style="background:#b00020;color:white;padding:16px;text-align:center;">
   <h1>Study Habits</h1>
 </header>
@@ -87,96 +85,6 @@ button {
 </main>
 
 <script>
-<script>
-const DAILY_LIMIT = 20;
-const todayKey = new Date().toISOString().slice(0,10);
-
-// --- 問題データ ---
-let allQuestions = JSON.parse(localStorage.getItem("questions")) || [
-  {
-    q: "評価制度は何を変える？",
-    c: ["行動", "売上", "市場", "法律"],
-    a: 0
-  }
-];
-
-// --- 今日の問題セット ---
-let todaySet = JSON.parse(localStorage.getItem("todaySet"));
-if (!todaySet || todaySet.date !== todayKey) {
-  let shuffled = [...allQuestions].sort(() => Math.random() - 0.5);
-  let selected =
-    allQuestions.length >= DAILY_LIMIT
-      ? shuffled.slice(0, DAILY_LIMIT)
-      : shuffled;
-
-  todaySet = {
-    date: todayKey,
-    questions: selected,
-    index: 0,
-    finished: false
-  };
-  localStorage.setItem("todaySet", JSON.stringify(todaySet));
-}
-
-let score = Number(localStorage.getItem("score")) || 1;
-let best = Number(localStorage.getItem("best")) || 1;
-
-// --- 表示 ---
-function render() {
-  if (todaySet.finished) {
-    document.getElementById("questionArea").innerHTML =
-      "<div>本日の学習は完了しました。お疲れさまでした。</div>";
-    return;
-  }
-
-  let q = todaySet.questions[todaySet.index];
-  let html = `<div>${todaySet.index + 1} / ${todaySet.questions.length}</div>`;
-  html += `<div style="margin-top:8px">${q.q}</div>`;
-
-  q.c.forEach((choice, i) => {
-    html += `<div class="choice" onclick="answer(${i})">${choice}</div>`;
-  });
-
-  document.getElementById("questionArea").innerHTML = html;
-  document.getElementById("score").innerText = score.toFixed(2);
-  document.getElementById("best").innerText = best.toFixed(2);
-}
-
-// --- 回答 ---
-function answer(i) {
-  let q = todaySet.questions[todaySet.index];
-  if (i !== q.a) {
-    alert("正解：" + q.c[q.a]);
-  }
-  nextQuestion();
-}
-
-// --- 次の問題 ---
-function nextQuestion() {
-  todaySet.index++;
-
-  if (todaySet.index >= todaySet.questions.length) {
-    todaySet.finished = true;
-    score *= 1.0101;
-
-    if (score > best) {
-      best = score;
-      alert("秘書より：今日も積み上がりました。継続が力になっています。");
-    }
-
-    localStorage.setItem("score", score);
-    localStorage.setItem("best", best);
-  }
-
-  localStorage.setItem("todaySet", JSON.stringify(todaySet));
-  render();
-}
-
-render();
-</script>
-</script>
-
-<script>
 /* ========= 初期設定 ========= */
 let questions = JSON.parse(localStorage.getItem("questions")) || [
   {
@@ -188,6 +96,7 @@ let questions = JSON.parse(localStorage.getItem("questions")) || [
       "動画を見るため"
     ],
     answer: "学習を習慣化し成長を可視化する"
+     explanation: "毎日の復習を通じて、学びを習慣化し、成長を数値で実感するためのアプリです。"
   }
 ];
 
@@ -245,6 +154,19 @@ function selectAnswer(selected, correct) {
       btn.style.background = "#f44336";
     }
   });
+
+  // 解説表示
+  const explanationDiv = document.createElement("div");
+  explanationDiv.style.marginTop = "12px";
+  explanationDiv.style.padding = "12px";
+  explanationDiv.style.background = "#f9f9f9";
+  explanationDiv.style.borderRadius = "8px";
+  explanationDiv.style.fontSize = "14px";
+  explanationDiv.innerHTML =
+    `<strong>正解：</strong>${correct}<br><br>` +
+    dailyQuestions[currentQuestionIndex].explanation;
+
+  document.getElementById("choices").appendChild(explanationDiv);
 }
 
 /* ========= 次へ ========= */
