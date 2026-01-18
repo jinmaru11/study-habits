@@ -1,0 +1,127 @@
+<details>
+<summary>▶ index.html（完成版・最初はそのまま使う）</summary>
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Habits</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#b30000">
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f4f4;
+}
+header {
+  background: #b30000;
+  color: white;
+  text-align: center;
+  padding: 16px;
+  font-size: 20px;
+  font-weight: bold;
+}
+.card {
+  background: white;
+  margin: 12px;
+  padding: 16px;
+  border-radius: 12px;
+}
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 10px;
+  background: #b30000;
+  color: white;
+  font-size: 16px;
+}
+.choice {
+  background: #eee;
+  margin-top: 6px;
+  padding: 10px;
+  border-radius: 8px;
+}
+.score {
+  font-size: 28px;
+  color: #b30000;
+}
+</style>
+</head>
+
+<body>
+
+<header>Study Habits</header>
+
+<div class="card">
+  <div>現在の成長スコア</div>
+  <div class="score" id="score">1</div>
+  <div>過去最高：<span id="best">1</span></div>
+</div>
+
+<div class="card" id="questionArea"></div>
+
+<button onclick="nextQuestion()">次へ</button>
+
+<script>
+let questions = JSON.parse(localStorage.getItem("questions")) || [
+  {
+    q: "評価制度は何を変える？",
+    c: ["行動", "売上", "市場", "法律"],
+    a: 0
+  }
+];
+
+let index = 0;
+let score = Number(localStorage.getItem("score")) || 1;
+let best = Number(localStorage.getItem("best")) || 1;
+
+function render() {
+  let q = questions[index];
+  let html = `<div>${q.q}</div>`;
+  q.c.forEach((choice, i) => {
+    html += `<div class="choice" onclick="answer(${i})">${choice}</div>`;
+  });
+  document.getElementById("questionArea").innerHTML = html;
+  document.getElementById("score").innerText = score.toFixed(2);
+  document.getElementById("best").innerText = best.toFixed(2);
+}
+
+function answer(i) {
+  let q = questions[index];
+  if (i !== q.a) {
+    alert("正解：" + q.c[q.a]);
+  }
+}
+
+function nextQuestion() {
+  index++;
+  if (index >= questions.length) {
+    score *= 1.0101;
+    if (score > best) {
+      best = score;
+      alert("秘書より：積み上げが効いています。素晴らしいです。");
+    }
+    localStorage.setItem("score", score);
+    localStorage.setItem("best", best);
+    index = 0;
+  }
+  render();
+}
+
+render();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
+
+</details>

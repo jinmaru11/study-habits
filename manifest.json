@@ -1,0 +1,8 @@
+{
+  "name": "Study Habits",
+  "short_name": "StudyHabits",
+  "start_url": "index.html",
+  "display": "standalone",
+  "theme_color": "#b30000",
+  "background_color": "#ffffff"
+}
