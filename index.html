@@ -155,5 +155,100 @@ render();
 </script>
 </script>
 
+<script>
+/* ========= 初期設定 ========= */
+let questions = JSON.parse(localStorage.getItem("questions")) || [
+  {
+    question: "Study Habitsは何を目的としたアプリ？",
+    choices: [
+      "学習を習慣化し成長を可視化する",
+      "SNSで勉強仲間を探す",
+      "資格試験を代行する",
+      "動画を見るため"
+    ],
+    answer: "学習を習慣化し成長を可視化する"
+  }
+];
+
+let todayAnswered = false;
+let currentQuestionIndex = 0;
+
+/* ========= 成長スコア ========= */
+let growthScore = parseFloat(localStorage.getItem("growthScore")) || 1.0;
+let maxScore = parseFloat(localStorage.getItem("maxScore")) || 1.0;
+
+document.getElementById("currentScore").textContent = growthScore.toFixed(2);
+document.getElementById("maxScore").textContent = maxScore.toFixed(2);
+
+/* ========= シャッフル ========= */
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+/* ========= 出題 ========= */
+let dailyQuestions = [...questions];
+shuffle(dailyQuestions);
+dailyQuestions = dailyQuestions.slice(0, 20);
+
+function showQuestion() {
+  if (currentQuestionIndex >= dailyQuestions.length) {
+    completeToday();
+    return;
+  }
+
+  const q = dailyQuestions[currentQuestionIndex];
+  document.getElementById("questionText").textContent = q.question;
+
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  q.choices.forEach(choice => {
+    const btn = document.createElement("button");
+    btn.textContent = choice;
+    btn.className = "choice-btn";
+    btn.onclick = () => selectAnswer(choice, q.answer);
+    choicesDiv.appendChild(btn);
+  });
+}
+
+/* ========= 回答 ========= */
+function selectAnswer(selected, correct) {
+  const buttons = document.querySelectorAll(".choice-btn");
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === correct) btn.style.background = "#4CAF50";
+    if (btn.textContent === selected && selected !== correct) {
+      btn.style.background = "#f44336";
+    }
+  });
+}
+
+/* ========= 次へ ========= */
+function nextQuestion() {
+  currentQuestionIndex++;
+  showQuestion();
+}
+
+/* ========= 今日達成 ========= */
+function completeToday() {
+  if (!todayAnswered) {
+    growthScore = growthScore * 1.0101;
+    maxScore = Math.max(maxScore, growthScore);
+    localStorage.setItem("growthScore", growthScore);
+    localStorage.setItem("maxScore", maxScore);
+    todayAnswered = true;
+  }
+
+  alert("本日の学習、完了です。着実に積み上がっています。");
+  location.reload();
+}
+
+/* ========= 初回表示 ========= */
+showQuestion();
+</script>
+  
 </body>
 </html>
