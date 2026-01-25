@@ -106,14 +106,9 @@ header {
 </main>
 
 <script>
- const TOTAL_QUESTIONS = 20;
+const TOTAL_QUESTIONS = 20;
 
-// シャッフルして20問だけ使う
-questions = questions
-  .sort(() => Math.random() - 0.5)
-  .slice(0, TOTAL_QUESTIONS);
-  
-// ===== 問題データ（indexと同じ） =====
+// ===== 問題データ =====
 let questions = JSON.parse(localStorage.getItem("questions")) || [
   {
     question: "Study Habitsは何を目的としたアプリ？",
@@ -128,10 +123,16 @@ let questions = JSON.parse(localStorage.getItem("questions")) || [
   }
 ];
 
+// シャッフルして20問だけ使う
+questions = questions
+  .sort(() => Math.random() - 0.5)
+  .slice(0, TOTAL_QUESTIONS);
+
 let currentQuestionIndex = 0;
 
 function showQuestion() {
   const q = questions[currentQuestionIndex];
+
   document.getElementById("questionText").textContent = q.question;
 
   const choicesDiv = document.getElementById("choices");
@@ -144,7 +145,8 @@ function showQuestion() {
     btn.onclick = () => selectAnswer(choice, q.answer);
     choicesDiv.appendChild(btn);
   });
-   updateProgress();
+
+  updateProgress();
 }
 
 function selectAnswer(selected, correct) {
@@ -172,6 +174,15 @@ function completeQuiz() {
   window.location.href = "index.html";
 }
 
+function updateProgress() {
+  document.getElementById("progressText").textContent =
+    `${currentQuestionIndex + 1} / ${questions.length}`;
+
+  document.getElementById("progressBar").style.width =
+    `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+}
+
+// 初期表示
 showQuestion();
 </script>
 
