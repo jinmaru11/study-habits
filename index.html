@@ -236,13 +236,13 @@ function renderCalendar(year, month) {
   }
  
   // ===== 6週（42日）に固定 =====
-const totalCellsNow = calendar.children.length;
+　const totalCellsNow = calendar.children.length;
 
 // 曜日7 + 日付42 = 49
-for (let i = totalCellsNow; i < 49; i++) {
+　for (let i = totalCellsNow; i < 49; i++) {
   calendar.appendChild(document.createElement("div"));
-}
-  
+　}
+}  
 function calculateStreak() {
   const history =
     JSON.parse(localStorage.getItem("studyHistory")) || {};
@@ -446,8 +446,6 @@ function celebrateRecord() {
 /* ========= 初回表示 ========= */
 showQuestion();
 
-// 初回描画
-renderCalendar();
 function prevMonth() {
   currentMonth--;
   if (currentMonth < 0) {
