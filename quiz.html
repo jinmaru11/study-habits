@@ -11,80 +11,32 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f4f4f4;
 }
-
 header {
   background: #b00020;
   color: white;
   text-align: center;
   padding: 16px;
-  font-size: 18px;
-  font-weight: bold;
 }
-
-#progress {
-  font-size: 14px;
-  margin-top: 4px;
-}
-
 main {
-  padding: 16px;
   max-width: 600px;
   margin: auto;
+  padding: 16px;
 }
-
 .card {
   background: white;
   padding: 16px;
   border-radius: 12px;
-  margin-bottom: 16px;
 }
-
-.choice-btn {
-  width: 100%;
-  padding: 14px;
+.choice {
   margin-top: 10px;
-  font-size: 16px;
-  border: none;
+  padding: 14px;
   border-radius: 10px;
-  background: #eee;
-  color: #333;
-}
-
-/* 正解：Study Habits 赤 */
-.choice-btn.correct {
-  background: #b00020;
-  color: white;
-}
-
-/* 間違えた選択肢：グレー */
-.choice-btn.wrong {
-  background: #bbb;
-  color: white;
-}
-
-/* 回答後に触れない選択肢 */
-.choice-btn.disabled {
-  opacity: 0.6;
-}
-
-.explanation {
-  margin-top: 12px;
-  padding: 12px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-button.next-btn {
-  width: 100%;
-  padding: 16px;
-  font-size: 18px;
   border: none;
-  border-radius: 12px;
-  background: #b00020;
-  color: white;
-  margin-top: 16px;
+  background: #eee;
+  width: 100%;
 }
+.correct { background:#b00020; color:white; }
+.wrong { background:#ccc; }
 </style>
 </head>
 
@@ -96,146 +48,61 @@ button.next-btn {
 </header>
 
 <main>
-
-<section class="card">
-  <div id="questionText" style="font-size:18px;font-weight:bold;"></div>
-  <div id="choices"></div>
-  <div id="explanation" class="explanation" style="display:none;"></div>
-</section>
-
-<button class="next-btn" onclick="nextQuestion()">次へ</button>
-
+  <div class="card">
+    <div id="q"></div>
+    <div id="c"></div>
+  </div>
+  <button onclick="next()">次へ</button>
 </main>
 
 <script>
-/* ===== 問題取得（add.html で追加された問題） ===== */
-const stored = JSON.parse(localStorage.getItem("questions")) || [];
+const qs =
+  JSON.parse(localStorage.getItem("questions")) || [];
 
-if (stored.length === 0) {
-  alert("問題がまだありません。先に問題を追加してください。");
-  location.href = "index.html";
-}
+let i = 0;
+let done = false;
 
-/* ===== シャッフル ===== */
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-
-/* ===== 出題準備 ===== */
-const TOTAL = 20;
-shuffle(stored);
-const quizQuestions = stored.slice(0, TOTAL);
-
-let current = 0;
-let answered = false;
-
-/* ===== 問題表示 ===== */
-function showQuestion() {
-  answered = false;
-
-  const q = quizQuestions[current];
-  document.getElementById("questionText").textContent = q.question;
+function show() {
+  done = false;
+  document.getElementById("q").textContent = qs[i].question;
   document.getElementById("progress").textContent =
-    `${current + 1} / ${quizQuestions.length}`;
+    `${i+1} / ${qs.length}`;
 
-  const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = "";
+  const c = document.getElementById("c");
+  c.innerHTML = "";
 
-  q.choices.forEach(choice => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.textContent = choice;
-    btn.onclick = () =>
-      selectAnswer(btn, choice, q.answer, q.explanation);
-    choicesDiv.appendChild(btn);
+  qs[i].choices.forEach(x => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = x;
+    b.onclick = () => answer(b, x);
+    c.appendChild(b);
   });
-
-  document.getElementById("explanation").style.display = "none";
 }
 
-/* ===== 回答処理 ===== */
-function selectAnswer(btn, selected, correct, explanation) {
-  if (answered) return;
-  answered = true;
+function answer(btn, x) {
+  if (done) return;
+  done = true;
 
-  const buttons = document.querySelectorAll(".choice-btn");
-
-  buttons.forEach(b => {
+  document.querySelectorAll(".choice").forEach(b => {
+    if (b.textContent === qs[i].answer)
+      b.classList.add("correct");
+    else if (b === btn)
+      b.classList.add("wrong");
     b.disabled = true;
-
-    if (b.textContent === correct) {
-      b.classList.add("correct"); // 正解は赤
-    } else {
-      b.classList.add("disabled"); // それ以外は薄く
-    }
   });
-
-  if (selected !== correct) {
-    btn.classList.remove("disabled");
-    btn.classList.add("wrong"); // 間違えた選択肢はグレー
-  }
-
-  const exp = document.getElementById("explanation");
-  exp.innerHTML =
-    `<strong>解説</strong><br>${explanation || "（解説なし）"}`;
-  exp.style.display = "block";
 }
 
-/* ===== 次の問題 ===== */
-function nextQuestion() {
-  if (!answered) {
-    alert("回答してください");
-    return;
-  }
-
-  current++;
-
-  if (current >= quizQuestions.length) {
-    completeQuiz();
-  } else {
-    showQuestion();
-  }
-}
-
-/* ===== 完了処理（1日1回だけ成長） ===== */
-function completeQuiz() {
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const lastStudyDate = localStorage.getItem("lastStudyDate");
-
-  if (lastStudyDate === todayKey) {
-    alert("本日はすでに学習済みです（成長は反映されません）");
+function next() {
+  if (!done) return alert("回答してください");
+  i++;
+  if (i >= qs.length) {
+    alert("完了！");
     location.href = "index.html";
-    return;
-  }
-
-  /* 学習履歴 */
-  const history =
-    JSON.parse(localStorage.getItem("studyHistory")) || {};
-  history[todayKey] = true;
-  localStorage.setItem("studyHistory", JSON.stringify(history));
-
-  /* 成長スコア */
-  let growthScore =
-    parseFloat(localStorage.getItem("growthScore")) || 1.0;
-  let maxScore =
-    parseFloat(localStorage.getItem("maxScore")) || 1.0;
-
-  growthScore *= 1.0101;
-  if (growthScore > maxScore) maxScore = growthScore;
-
-  localStorage.setItem("growthScore", growthScore);
-  localStorage.setItem("maxScore", maxScore);
-  localStorage.setItem("lastStudyDate", todayKey);
-
-  alert("本日の学習を完了しました！");
-  location.href = "index.html";
+  } else show();
 }
 
-/* ===== 初期表示 ===== */
-showQuestion();
+show();
 </script>
 
 </body>
