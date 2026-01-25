@@ -29,11 +29,27 @@ main {
   padding: 16px;
   border-radius: 12px;
 }
+label {
+  font-weight: bold;
+}
 input, textarea {
   width: 100%;
   padding: 10px;
-  margin-top: 8px;
+  margin-top: 6px;
   margin-bottom: 12px;
+}
+.choice-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.choice-row input[type="text"] {
+  flex: 1;
+}
+.choice-row button {
+  background: #ddd;
+  border-radius: 6px;
+  padding: 0 10px;
 }
 button {
   padding: 12px;
@@ -43,6 +59,13 @@ button {
 }
 .generate {
   background: #eee;
+  width: 100%;
+  margin-bottom: 8px;
+}
+.add {
+  background: #ddd;
+  width: 100%;
+  margin-bottom: 12px;
 }
 .save {
   background: #b00020;
@@ -66,11 +89,15 @@ button {
 <label>正解</label>
 <input id="answer" placeholder="正解を入力">
 
-<button class="generate" onclick="generateChoices()">
-不正解候補を提案
+<button class="generate" onclick="generateWrongChoices()">
+不正解候補を自動生成
 </button>
 
-<div id="choicesArea"></div>
+<button class="add" onclick="addWrongChoice()">
+＋ 不正解候補を追加
+</button>
+
+<div id="wrongChoices"></div>
 
 <label>解説（任意）</label>
 <textarea id="explanation" placeholder="未入力でも保存できます"></textarea>
@@ -81,32 +108,37 @@ button {
 </main>
 
 <script>
-function generateChoices() {
+const wrongArea = document.getElementById("wrongChoices");
+
+function addWrongChoice(text = "") {
+  const row = document.createElement("div");
+  row.className = "choice-row";
+  row.innerHTML = `
+    <input type="checkbox">
+    <input type="text" placeholder="不正解候補" value="${text}">
+    <button onclick="this.parentElement.remove()">×</button>
+  `;
+  wrongArea.appendChild(row);
+}
+
+function generateWrongChoices() {
   const answer = document.getElementById("answer").value.trim();
   if (!answer) {
-    alert("正解を先に入力してください");
+    alert("正解を入力してください");
     return;
   }
 
-  const candidates = [
-    answer + "の一部",
-    answer + "のみを担当する",
-    "主に管理業務を行う",
-    "経営とは関与しない",
-    "現場業務が中心である"
+  wrongArea.innerHTML = "";
+
+  const templates = [
+    "主に事務作業を担当する役割",
+    "経営には関与しない立場",
+    "現場業務のみを行う",
+    "人事制度の運用だけを担う",
+    "短期的な業務改善が目的"
   ];
 
-  const area = document.getElementById("choicesArea");
-  area.innerHTML = "<p>不正解候補（選択）</p>";
-
-  candidates.forEach(text => {
-    const label = document.createElement("label");
-    label.innerHTML = `
-      <input type="checkbox" value="${text}"> ${text}
-    `;
-    area.appendChild(label);
-    area.appendChild(document.createElement("br"));
-  });
+  templates.forEach(t => addWrongChoice(t));
 }
 
 function saveQuestion() {
@@ -120,17 +152,22 @@ function saveQuestion() {
     return;
   }
 
-  const selected =
-    [...document.querySelectorAll("#choicesArea input:checked")]
-    .map(i => i.value);
+  const wrongs = [];
+  document.querySelectorAll(".choice-row").forEach(row => {
+    const check = row.querySelector("input[type='checkbox']");
+    const text = row.querySelector("input[type='text']").value.trim();
+    if (check.checked && text) {
+      wrongs.push(text);
+    }
+  });
 
-  if (selected.length < 3) {
-    alert("不正解を3つ以上選んでください");
+  if (wrongs.length < 3) {
+    alert("不正解を3つ以上チェックしてください");
     return;
   }
 
   const choices =
-    [answer, ...selected.slice(0,3)]
+    [answer, ...wrongs.slice(0,3)]
     .sort(() => Math.random() - 0.5);
 
   const data =
