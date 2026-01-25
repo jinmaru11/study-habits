@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Habits｜問題</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f4f4;
+}
+header {
+  background: #b00020;
+  color: white;
+  text-align: center;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.card {
+  background: white;
+  margin: 16px;
+  padding: 16px;
+  border-radius: 12px;
+}
+.choice-btn {
+  background: #eee;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<header>問題に挑戦</header>
+
+<main>
+
+  <section class="card">
+    <div id="questionText"
+         style="font-size:18px;margin-bottom:12px;">
+    </div>
+
+    <div id="choices"
+         style="display:flex;flex-direction:column;">
+    </div>
+  </section>
+
+  <button onclick="nextQuestion()"
+          style="
+            width:90%;
+            margin:0 auto;
+            display:block;
+            padding:16px;
+            font-size:18px;
+            background:#b00020;
+            color:white;
+            border:none;
+            border-radius:12px;
+          ">
+    次へ
+  </button>
+
+</main>
+
+<script>
+// ===== 問題データ（indexと同じ） =====
+let questions = JSON.parse(localStorage.getItem("questions")) || [
+  {
+    question: "Study Habitsは何を目的としたアプリ？",
+    choices: [
+      "学習を習慣化し成長を可視化する",
+      "SNSで勉強仲間を探す",
+      "資格試験を代行する",
+      "動画を見るため"
+    ],
+    answer: "学習を習慣化し成長を可視化する",
+    explanation: "毎日の復習を通じて成長を可視化します。"
+  }
+];
+
+let currentQuestionIndex = 0;
+
+function showQuestion() {
+  const q = questions[currentQuestionIndex];
+  document.getElementById("questionText").textContent = q.question;
+
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  q.choices.forEach(choice => {
+    const btn = document.createElement("button");
+    btn.textContent = choice;
+    btn.className = "choice-btn";
+    btn.onclick = () => selectAnswer(choice, q.answer);
+    choicesDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(selected, correct) {
+  const buttons = document.querySelectorAll(".choice-btn");
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === correct) btn.style.background = "#4CAF50";
+    if (btn.textContent === selected && selected !== correct) {
+      btn.style.background = "#f44336";
+    }
+  });
+}
+
+function nextQuestion() {
+  currentQuestionIndex++;
+  if (currentQuestionIndex >= questions.length) {
+    completeQuiz();
+  } else {
+    showQuestion();
+  }
+}
+
+function completeQuiz() {
+  alert("本日の学習を完了しました！");
+  window.location.href = "index.html";
+}
+
+showQuestion();
+</script>
+
+</body>
+</html>
