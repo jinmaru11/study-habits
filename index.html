@@ -211,7 +211,6 @@ renderCalendar();
 const streak = calculateStreak();
 document.getElementById("streakCount").textContent =
   `🔥 ${streak} 日`;
-</script>
   
 const today = new Date().toISOString().slice(0,10);
 const lastStudyDate = localStorage.getItem("lastStudyDate");
