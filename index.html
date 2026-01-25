@@ -11,286 +11,115 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f4f4f4;
 }
-
 header {
   background: #b00020;
   color: white;
   padding: 16px;
   text-align: center;
-  font-size: 20px;
   font-weight: bold;
 }
-
 main {
   padding: 16px;
   max-width: 600px;
   margin: auto;
 }
-
 .card {
   background: white;
-  margin-bottom: 16px;
-  padding: 16px;
   border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
 /* ===== ボタン ===== */
+.action-row {
+  display: flex;
+  gap: 12px;
+}
 button {
-  width: 100%;
-  padding: 16px;
-  font-size: 18px;
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
   border: none;
+  border-radius: 10px;
+  background: #b00020;
+  color: white;
+}
+
+/* ===== 偉人カード一覧 ===== */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hero-card {
+  padding: 14px;
   border-radius: 12px;
-  background: #b00020;
   color: white;
-}
-
-/* ===== カレンダー ===== */
-.calendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.month-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #b00020;
-  color: white;
-  font-size: 18px;
   font-weight: bold;
-  border: none;
 }
-
-.calendar-center {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.common { background: #888; }
+.rare { background: linear-gradient(135deg,#4a90e2,#357ab8); }
+.legendary {
+  background: linear-gradient(
+    120deg,
+    #f5d76e,
+    #fff2a8,
+    #f5d76e
+  );
+  animation: shine 3s linear infinite;
+  color: #5c4600;
 }
-
-.calendar-title {
-  font-size: 22px;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-.today-btn {
-  min-width: 72px;
-  padding: 6px 14px;
-  font-size: 12px;
-  border-radius: 8px;
-  border: 3px solid #b00020;
-  background: white;
-  color: #b00020;
-  font-weight: bold;
-  white-space: nowrap;
-}
-
-#calendar {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  text-align: center;
-  min-height: 300px;
-}
-
-.calendar-cell {
-  height: 44px;
-  border-radius: 8px;
-  background: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-}
-
-.calendar-cell.today {
-  border: 2px solid #b00020;
-  font-weight: bold;
-  background: #fff;
+@keyframes shine {
+  0% { background-position: 0% }
+  100% { background-position: 200% }
 }
 </style>
 </head>
 
 <body>
-
 <header>Study Habits</header>
 
 <main>
 
-  <!-- 成長スコア -->
-  <section class="card">
-    <div>現在の成長スコア</div>
-    <div id="currentScore" style="font-size:32px;color:#b00020;">1.00</div>
-    <div>過去最高：<span id="maxScore">1.00</span></div>
-  </section>
+<section class="card">
+  <div>成長スコア</div>
+  <div id="score" style="font-size:28px;color:#b00020;">1.00</div>
+</section>
 
-  <!-- ストリーク -->
-  <section class="card">
-    <div style="font-size:14px;color:#666;">連続学習ストリーク</div>
-    <div id="streakCount"
-         style="font-size:28px;font-weight:bold;color:#ff5722;">
-      🔥 0 日
-    </div>
-  </section>
+<div class="action-row">
+  <button onclick="location.href='quiz.html'">問題を解く</button>
+  <button onclick="location.href='add.html'" style="background:#555;">
+    問題を追加
+  </button>
+</div>
 
-  <!-- カレンダー -->
-  <section class="card">
-    <div class="calendar-header">
-      <button class="month-btn" onclick="prevMonth()">‹</button>
-
-      <div class="calendar-center">
-        <span id="calendarTitle" class="calendar-title"></span>
-        <button class="today-btn" onclick="goToday()">本日</button>
-      </div>
-
-      <button class="month-btn" onclick="nextMonth()">›</button>
-    </div>
-
-    <div id="calendar"></div>
-  </section>
-
-  <!-- アクション -->
-  <div style="display:flex; gap:12px;">
-    <button onclick="location.href='quiz.html'" style="flex:1;">
-      問題を解く
-    </button>
-    <button onclick="location.href='add.html'"
-            style="flex:1;background:#555;">
-      問題を追加
-    </button>
-  </div>
+<section class="card">
+  <h3>獲得した偉人カード</h3>
+  <div id="cards" class="cards"></div>
+</section>
 
 </main>
 
 <script>
-/* ===== カレンダー ===== */
-let currentYear, currentMonth;
+/* ===== スコア ===== */
+document.getElementById("score").textContent =
+  (parseFloat(localStorage.getItem("growthScore")) || 1).toFixed(2);
 
-function initCalendarDate() {
-  const now = new Date();
-  currentYear = now.getFullYear();
-  currentMonth = now.getMonth();
+/* ===== 偉人カード表示 ===== */
+const owned =
+  JSON.parse(localStorage.getItem("heroCards")) || [];
+
+const container = document.getElementById("cards");
+if (owned.length === 0) {
+  container.innerHTML = "<div style='color:#666'>まだカードがありません</div>";
 }
 
-function renderCalendar(year, month) {
-  const calendar = document.getElementById("calendar");
-  calendar.innerHTML = "";
-
-  const history =
-    JSON.parse(localStorage.getItem("studyHistory")) || {};
-
-  const today = new Date().toISOString().slice(0,10);
-
-  document.getElementById("calendarTitle").textContent =
-    `${year}年 ${month + 1}月`;
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month + 1, 0).getDate();
-
-  ["日","月","火","水","木","金","土"].forEach(d => {
-    const el = document.createElement("div");
-    el.textContent = d;
-    el.style.fontWeight = "bold";
-    calendar.appendChild(el);
-  });
-
-  for (let i = 0; i < firstDay; i++) {
-    calendar.appendChild(document.createElement("div"));
-  }
-
-  for (let d = 1; d <= lastDate; d++) {
-    const key =
-      `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const cell = document.createElement("div");
-    cell.className = "calendar-cell";
-
-    cell.textContent = history[key] ? "⭐️" : d;
-    if (key === today) cell.classList.add("today");
-
-    calendar.appendChild(cell);
-  }
-
-  while (calendar.children.length < 49) {
-    calendar.appendChild(document.createElement("div"));
-  }
-  updateTodayButton();  
-}
-
-function prevMonth() {
-  currentMonth--;
-  if (currentMonth < 0) {
-    currentMonth = 11;
-    currentYear--;
-  }
-  renderCalendar(currentYear, currentMonth);
-}
-
-function nextMonth() {
-  currentMonth++;
-  if (currentMonth > 11) {
-    currentMonth = 0;
-    currentYear++;
-  }
-  renderCalendar(currentYear, currentMonth);
-}
-
-function goToday() {
-  initCalendarDate();
-  renderCalendar(currentYear, currentMonth);
-  updateTodayButton();
-}
-  
-function updateTodayButton() {
-  const btn = document.querySelector(".today-btn");
-  const now = new Date();
-
-  if (
-    currentYear === now.getFullYear() &&
-    currentMonth === now.getMonth()
-  ) {
-    btn.style.display = "none";
-  } else {
-    btn.style.display = "inline-block";
-  }
-}
-
-/* ===== ストリーク ===== */
-function calculateStreak() {
-  const history =
-    JSON.parse(localStorage.getItem("studyHistory")) || {};
-  let streak = 0;
-  let date = new Date();
-
-  while (true) {
-    const key = date.toISOString().slice(0,10);
-    if (history[key]) {
-      streak++;
-      date.setDate(date.getDate() - 1);
-    } else break;
-  }
-  return streak;
-}
-
-/* ===== 初期表示 ===== */
-initCalendarDate();
-renderCalendar(currentYear, currentMonth);
-
-document.getElementById("streakCount").textContent =
-  `🔥 ${calculateStreak()} 日`;
-
-const growthScore =
-  parseFloat(localStorage.getItem("growthScore")) || 1.0;
-const maxScore =
-  parseFloat(localStorage.getItem("maxScore")) || 1.0;
-
-document.getElementById("currentScore").textContent =
-  growthScore.toFixed(2);
-document.getElementById("maxScore").textContent =
-  maxScore.toFixed(2);
+owned.forEach(c => {
+  const div = document.createElement("div");
+  div.className = `hero-card ${c.rarity}`;
+  div.innerHTML = `${c.name}<br><small>${c.quote}</small>`;
+  container.appendChild(div);
+});
 </script>
-
 </body>
 </html>
