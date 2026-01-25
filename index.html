@@ -87,25 +87,12 @@ button {
   
 <!-- 学習カレンダー -->
 <section class="card">
-  <div id="calendarHeader"
-       style="font-weight:bold;
-              font-size:16px;
-              text-align:center;
-              margin-bottom:8px;">
-  </div>
-
-  <div id="calendarWeek"
+  <h3>今月の学習カレンダー</h3>
+  <div id="calendar"
        style="display:grid;
               grid-template-columns:repeat(7,1fr);
-              font-size:12px;
-              text-align:center;
-              color:#666;">
-  </div>
-
-  <div id="calendarGrid"
-       style="display:grid;
-              grid-template-columns:repeat(7,1fr);
-              gap:6px;">
+              gap:6px;
+              text-align:center;">
   </div>
 </section>
   
@@ -136,7 +123,12 @@ button {
   /* ========= カレンダー描画 ========= */
 function renderCalendar() {
   const calendar = document.getElementById("calendar");
+  if (!calendar) return;
+
   calendar.innerHTML = "";
+
+  const studyHistory =
+    JSON.parse(localStorage.getItem("studyHistory")) || {};
 
   const now = new Date();
   const year = now.getFullYear();
@@ -147,10 +139,11 @@ function renderCalendar() {
 
   // 曜日ヘッダー
   ["日","月","火","水","木","金","土"].forEach(d => {
-    const el = document.createElement("div");
-    el.textContent = d;
-    el.style.fontWeight = "bold";
-    calendar.appendChild(el);
+    const h = document.createElement("div");
+    h.textContent = d;
+    h.style.fontWeight = "bold";
+    h.style.textAlign = "center";
+    calendar.appendChild(h);
   });
 
   // 空白
@@ -158,11 +151,21 @@ function renderCalendar() {
     calendar.appendChild(document.createElement("div"));
   }
 
-  // 日付
+  // 日付セル
   for (let d = 1; d <= lastDate; d++) {
-    const dateKey = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dateKey =
+      `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
     const cell = document.createElement("div");
-    cell.textContent = studyHistory[dateKey] ? "⭐️" : d;
+    cell.className = "calendar-cell";
+
+    if (studyHistory[dateKey]) {
+      cell.textContent = "⭐️";
+      cell.style.background = "#ffe082";
+    } else {
+      cell.textContent = d;
+    }
+
     calendar.appendChild(cell);
   }
 }
@@ -313,7 +316,6 @@ localStorage.setItem("studyHistory", JSON.stringify(studyHistory));
       document.getElementById("secretaryMessage").textContent =
         "秘書より：本日の学習を完了しました。お疲れさまでした。";
     }
-    renderCalendar();
   }
 
   setTimeout(() => {
