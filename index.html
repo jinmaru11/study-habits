@@ -220,10 +220,26 @@ button {
        style="font-size:18px;margin-bottom:12px;">
     問題がここに表示されます
   </div>
-
+    
   <div id="choices"
        style="display:flex;flex-direction:column;gap:8px;">
   </div>
+
+  <div style="display:flex; gap:12px; padding:16px;">
+  <button onclick="location.href='quiz.html'"
+    style="flex:1; padding:16px; font-size:18px;
+           background:#b00020; color:white;
+           border:none; border-radius:12px;">
+    問題を解く
+  </button>
+
+  <button onclick="location.href='add.html'"
+    style="flex:1; padding:16px; font-size:18px;
+           background:#555; color:white;
+           border:none; border-radius:12px;">
+    問題を追加
+  </button>
+</div>
 
   <button onclick="nextQuestion()"
     style="width:100%;
