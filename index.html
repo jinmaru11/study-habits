@@ -112,6 +112,14 @@ let questions = JSON.parse(localStorage.getItem("questions")) || [
 let todayAnswered = false;
 let currentQuestionIndex = 0;
 
+/* ========= 秘書メッセージ ========= */
+const secretaryMessages = [
+  "秘書より：過去最高を更新しました。素晴らしい継続です。",
+  "秘書より：努力が数字に表れています。この調子です。",
+  "秘書より：今年は人生で一番成長している年になっています。",
+  "秘書より：着実に積み上がっています。とても良い流れです。"
+];
+  
 /* ========= 成長スコア ========= */
 let growthScore = parseFloat(localStorage.getItem("growthScore")) || 1.0;
 let maxScore = parseFloat(localStorage.getItem("maxScore")) || 1.0;
@@ -187,18 +195,58 @@ function nextQuestion() {
 /* ========= 今日達成 ========= */
 function completeToday() {
   if (!todayAnswered) {
+
+    const oldBest = maxScore; // これまでの最高
+
+    // 成長スコア更新（複利）
     growthScore = growthScore * 1.0101;
-    maxScore = Math.max(maxScore, growthScore);
+
+    let isNewRecord = false;
+    if (growthScore > maxScore) {
+      maxScore = growthScore;
+      isNewRecord = true;
+    }
+
     localStorage.setItem("growthScore", growthScore);
     localStorage.setItem("maxScore", maxScore);
-    localStorage.setItem("lastStudyDate", new Date().toISOString().slice(0,10));
+
     todayAnswered = true;
+
+    // 表示更新
+    document.getElementById("currentScore").textContent = growthScore.toFixed(2);
+    document.getElementById("maxScore").textContent = maxScore.toFixed(2);
+
+    // ④へ分岐
+    if (isNewRecord) {
+      celebrateRecord();
+    } else {
+      document.getElementById("secretaryMessage").textContent =
+        "秘書より：本日の学習を完了しました。お疲れさまでした。";
+    }
   }
 
-  alert("本日の学習、完了です。着実に積み上がっています。");
-  location.reload();
+  setTimeout(() => {
+    location.reload();
+  }, 800);
 }
+  
+/* ========= 記録更新演出 ========= */
+function celebrateRecord() {
+  const msg =
+    secretaryMessages[Math.floor(Math.random() * secretaryMessages.length)];
 
+  // 秘書メッセージ表示
+  document.getElementById("secretaryMessage").textContent = msg;
+
+  // 背景を一瞬だけ祝福色に
+  document.body.style.background = "#fff5f5";
+
+  // 軽い祝福ポップ
+  setTimeout(() => {
+    alert("🔥 過去最高スコア更新！");
+  }, 300);
+}
+  
 /* ========= 初回表示 ========= */
 showQuestion();
 </script>
