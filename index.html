@@ -58,9 +58,16 @@ button {
   font-size: 14px;
 }
 
+.calendar-cell {
+  padding: 8px;
+  border-radius: 8px;
+  background: #f5f5f5;
+}
+
 .calendar-cell.today {
   border: 2px solid #b00020;
   font-weight: bold;
+  background: #fff;
 }
 
 .calendar-star {
@@ -111,6 +118,7 @@ button {
 
 <script>
   /* ========= カレンダー描画 ========= */
+<script>
 function renderCalendar() {
   const calendar = document.getElementById("calendar");
   if (!calendar) return;
@@ -123,6 +131,7 @@ function renderCalendar() {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
+  const todayStr = now.toISOString().slice(0, 10);
 
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month + 1, 0).getDate();
@@ -132,7 +141,7 @@ function renderCalendar() {
     const h = document.createElement("div");
     h.textContent = d;
     h.style.fontWeight = "bold";
-    h.style.textAlign = "center";
+    h.style.color = "#666";
     calendar.appendChild(h);
   });
 
@@ -141,24 +150,36 @@ function renderCalendar() {
     calendar.appendChild(document.createElement("div"));
   }
 
-  // 日付セル
+  // 日付マス
   for (let d = 1; d <= lastDate; d++) {
-    const dateKey =
-      `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const dateStr =
+      year + "-" +
+      String(month + 1).padStart(2, "0") + "-" +
+      String(d).padStart(2, "0");
 
     const cell = document.createElement("div");
     cell.className = "calendar-cell";
 
-    if (studyHistory[dateKey]) {
+    // ⭐️ or 日付
+    if (studyHistory[dateStr]) {
       cell.textContent = "⭐️";
       cell.style.background = "#ffe082";
     } else {
       cell.textContent = d;
     }
 
+    // 今日判定
+    if (dateStr === todayStr) {
+      cell.classList.add("today");
+    }
+
     calendar.appendChild(cell);
   }
 }
+
+// 初回描画
+renderCalendar();
+</script>
   
 const today = new Date().toISOString().slice(0,10);
 const lastStudyDate = localStorage.getItem("lastStudyDate");
