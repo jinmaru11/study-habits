@@ -175,7 +175,25 @@ function renderCalendar() {
     calendar.appendChild(cell);
   }
 }
+function calculateStreak() {
+  const history =
+    JSON.parse(localStorage.getItem("studyHistory")) || {};
 
+  let streak = 0;
+  let date = new Date();
+
+  while (true) {
+    const key = date.toISOString().slice(0,10);
+    if (history[key]) {
+      streak++;
+      date.setDate(date.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
 // 初回描画
 renderCalendar();
 </script>
