@@ -105,8 +105,23 @@ button {
   
   <!-- 学習カレンダー -->  
 <section class="card">
-  <h3>今月の学習カレンダー</h3>
-  <div id="calendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center;"></div>
+  <div style="
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:8px;
+  ">
+    <button onclick="prevMonth()">‹</button>
+    <h3 id="calendarTitle">----</h3>
+    <button onclick="nextMonth()">›</button>
+  </div>
+
+  <div id="calendar"
+       style="display:grid;
+              grid-template-columns:repeat(7,1fr);
+              gap:6px;
+              text-align:center;">
+  </div>
 </section>
   
   <!-- 問題表示 -->
@@ -128,8 +143,18 @@ button {
 </main>
 
 <script>
+// ===== 表示中の年月 =====
+let currentYear;
+let currentMonth;
+
+function initCalendarDate() {
+  const now = new Date();
+  currentYear = now.getFullYear();
+  currentMonth = now.getMonth(); // 0-11
+} 
+  
   /* ========= カレンダー描画 ========= */
-function renderCalendar() {
+function renderCalendar(year, month) {
   const calendar = document.getElementById("calendar");
   if (!calendar) return;
 
@@ -138,20 +163,21 @@ function renderCalendar() {
   const studyHistory =
     JSON.parse(localStorage.getItem("studyHistory")) || {};
 
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const todayStr = now.toISOString().slice(0, 10);
+  const today = new Date();
+  const todayStr = today.toISOString().slice(0,10);
+
+  // タイトル
+  document.getElementById("calendarTitle").textContent =
+    `${year}年 ${month + 1}月`;
 
   const firstDay = new Date(year, month, 1).getDay();
   const lastDate = new Date(year, month + 1, 0).getDate();
 
-  // 曜日ヘッダー
+  // 曜日
   ["日","月","火","水","木","金","土"].forEach(d => {
     const h = document.createElement("div");
     h.textContent = d;
     h.style.fontWeight = "bold";
-    h.style.color = "#666";
     calendar.appendChild(h);
   });
 
@@ -160,17 +186,14 @@ function renderCalendar() {
     calendar.appendChild(document.createElement("div"));
   }
 
-  // 日付マス
+  // 日付
   for (let d = 1; d <= lastDate; d++) {
     const dateStr =
-      year + "-" +
-      String(month + 1).padStart(2, "0") + "-" +
-      String(d).padStart(2, "0");
+      `${year}-${String(month + 1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
     const cell = document.createElement("div");
     cell.className = "calendar-cell";
 
-    // ⭐️ or 日付
     if (studyHistory[dateStr]) {
       cell.textContent = "⭐️";
       cell.style.background = "#ffe082";
@@ -178,7 +201,6 @@ function renderCalendar() {
       cell.textContent = d;
     }
 
-    // 今日判定
     if (dateStr === todayStr) {
       cell.classList.add("today");
     }
@@ -186,10 +208,12 @@ function renderCalendar() {
     calendar.appendChild(cell);
   }
 }
+  
 function calculateStreak() {
   const history =
     JSON.parse(localStorage.getItem("studyHistory")) || {};
 
+  // 連続日数
   let streak = 0;
   let date = new Date();
 
@@ -392,6 +416,43 @@ showQuestion();
 
 // 初回描画
 renderCalendar();
+function prevMonth() {
+  currentMonth--;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  }
+  renderCalendar(currentYear, currentMonth);
+}
+
+function nextMonth() {
+  currentMonth++;
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+  renderCalendar(currentYear, currentMonth);
+}
+  
+// ===== スワイプ操作 =====
+let startX = 0;
+const calendarArea = document.getElementById("calendar");
+
+calendarArea.addEventListener("touchstart", e => {
+  startX = e.touches[0].clientX;
+});
+
+calendarArea.addEventListener("touchend", e => {
+  const diff = e.changedTouches[0].clientX - startX;
+
+  if (diff > 50) prevMonth();
+  if (diff < -50) nextMonth();
+});
+
+// ===== 初回表示 =====
+initCalendarDate();
+renderCalendar(currentYear, currentMonth);  
+
 </script>
   
 </body>
