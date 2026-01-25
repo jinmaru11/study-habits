@@ -195,19 +195,46 @@ button {
 
 </section>
   
-  <!-- 問題表示 -->
-  <section style="background:#fff;padding:16px;border-radius:12px;margin-bottom:16px;">
-    <div id="questionText" style="font-size:18px;margin-bottom:12px;">
-      問題がここに表示されます
-    </div>
+<button id="startQuizBtn"
+        onclick="startQuiz()"
+        style="
+          width:100%;
+          padding:16px;
+          font-size:18px;
+          background:#b00020;
+          color:white;
+          border:none;
+          border-radius:12px;
+          margin-bottom:16px;
+        ">
+  問題を解く（20問）
+</button>
+  
+  <section id="quizScreen"
+         style="background:#fff;
+                padding:16px;
+                border-radius:12px;
+                margin-bottom:16px;
+                display:none;">
+  
+  <div id="questionText"
+       style="font-size:18px;margin-bottom:12px;">
+    問題がここに表示されます
+  </div>
 
-    <div id="choices" style="display:flex;flex-direction:column;gap:8px;">
-      <!-- 選択肢ボタンがJSで生成される -->
-    </div>
-  </section>
+  <div id="choices"
+       style="display:flex;flex-direction:column;gap:8px;">
+  </div>
 
   <button onclick="nextQuestion()"
-    style="width:100%;padding:16px;font-size:18px;background:#b00020;color:white;border:none;border-radius:12px;">
+    style="width:100%;
+           padding:16px;
+           font-size:18px;
+           background:#b00020;
+           color:white;
+           border:none;
+           border-radius:12px;
+           margin-top:12px;">
     次へ
   </button>
   
@@ -548,6 +575,14 @@ calendarArea.addEventListener("touchend", e => {
 initCalendarDate();
 renderCalendar(currentYear, currentMonth);  
 
+function startQuiz() {
+  // ダッシュボード側を隠す
+  document.getElementById("startQuizBtn").style.display = "none";
+
+  // 問題画面を表示
+  document.getElementById("quizScreen").style.display = "block";
+}
+  
 </script>
   
 </body>
