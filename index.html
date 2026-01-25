@@ -103,6 +103,16 @@ button {
   min-height: 300px;   /* 好きな高さでOK（例） */
 }
 
+.today-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 12px;
+  border: 1px solid #b00020;
+  background: white;
+  color: #b00020;
+  font-weight: bold;
+  white-space: nowrap;
+}
   
 </style>
 </head>
@@ -138,9 +148,14 @@ button {
 <section class="card">
   <div class="calendar-header">
   <button class="month-btn" onclick="prevMonth()">‹</button>
-  <div id="calendarTitle" class="calendar-title">2026年1月</div>
+
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div id="calendarTitle" class="calendar-title">2026年1月</div>
+    <button class="today-btn" onclick="goToday()">今日</button>
+  </div>
+
   <button class="month-btn" onclick="nextMonth()">›</button>
-</div>
+　</div>
 
   <div id="calendar"
        style="display:grid;
@@ -242,7 +257,28 @@ function renderCalendar(year, month) {
 　for (let i = totalCellsNow; i < 49; i++) {
   calendar.appendChild(document.createElement("div"));
 　}
-}  
+} 
+  
+function goToday() {
+  const now = new Date();
+  currentYear = now.getFullYear();
+  currentMonth = now.getMonth(); // 0-11
+  renderCalendar(currentYear, currentMonth);
+}
+  
+function updateTodayButton() {
+  const btn = document.querySelector(".today-btn");
+  const now = new Date();
+  if (
+    currentYear === now.getFullYear() &&
+    currentMonth === now.getMonth()
+  ) {
+    btn.style.display = "none";
+  } else {
+    btn.style.display = "inline-block";
+  }
+}
+  
 function calculateStreak() {
   const history =
     JSON.parse(localStorage.getItem("studyHistory")) || {};
