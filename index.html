@@ -141,17 +141,6 @@ button {
   <div id="calendarTitle" class="calendar-title">2026年1月</div>
   <button class="month-btn" onclick="nextMonth()">›</button>
 </div>
-  
-  <div style="
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:8px;
-  ">
-    <button onclick="prevMonth()">‹</button>
-    <h3 id="calendarTitle">----</h3>
-    <button onclick="nextMonth()">›</button>
-  </div>
 
   <div id="calendar"
        style="display:grid;
@@ -245,14 +234,13 @@ function renderCalendar(year, month) {
 
     calendar.appendChild(cell);
   }
-  // 6週（42マス）に揃える
- const totalCells =
-   7 + firstDay + lastDate; // 曜日 + 空白 + 日付
- const remaining = 42 - (totalCells - 7);
+ 
+  // ===== 6週（42日）に固定 =====
+const totalCellsNow = calendar.children.length;
 
- for (let i = 0; i < remaining; i++) {
-   calendar.appendChild(document.createElement("div"));
- }
+// 曜日7 + 日付42 = 49
+for (let i = totalCellsNow; i < 49; i++) {
+  calendar.appendChild(document.createElement("div"));
 }
   
 function calculateStreak() {
@@ -275,8 +263,6 @@ function calculateStreak() {
 
   return streak;
 }
-// 初回描画
-renderCalendar();
   
 const streak = calculateStreak();
 document.getElementById("streakCount").textContent =
