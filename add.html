@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>問題を追加｜Study Habits</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f4f4;
+}
+
+header {
+  background: #b00020;
+  color: white;
+  padding: 16px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+main {
+  padding: 16px;
+  max-width: 600px;
+  margin: auto;
+}
+
+.card {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+input[type="text"],
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.choice-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+button {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  background: #b00020;
+  color: white;
+  margin-top: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<header>問題を追加</header>
+
+<main>
+
+<section class="card">
+
+  <label>問題文</label>
+  <textarea id="question" rows="3"></textarea>
+
+  <label>選択肢（正解を選択）</label>
+
+  <div class="choice-row">
+    <input type="radio" name="answer" value="0">
+    <input type="text" id="c0">
+  </div>
+
+  <div class="choice-row">
+    <input type="radio" name="answer" value="1">
+    <input type="text" id="c1">
+  </div>
+
+  <div class="choice-row">
+    <input type="radio" name="answer" value="2">
+    <input type="text" id="c2">
+  </div>
+
+  <div class="choice-row">
+    <input type="radio" name="answer" value="3">
+    <input type="text" id="c3">
+  </div>
+
+  <label>解説</label>
+  <textarea id="explanation" rows="3"></textarea>
+
+  <button onclick="saveQuestion()">保存する</button>
+
+</section>
+
+<button onclick="location.href='index.html'" style="background:#555;">
+  戻る
+</button>
+
+</main>
+
+<script>
+function saveQuestion() {
+  const question = document.getElementById("question").value.trim();
+  const choices = [
+    document.getElementById("c0").value.trim(),
+    document.getElementById("c1").value.trim(),
+    document.getElementById("c2").value.trim(),
+    document.getElementById("c3").value.trim()
+  ];
+  const explanation =
+    document.getElementById("explanation").value.trim();
+
+  const answerIndex =
+    document.querySelector('input[name="answer"]:checked');
+
+  if (!question || choices.some(c => !c) || !answerIndex) {
+    alert("すべて入力し、正解を選択してください");
+    return;
+  }
+
+  const newQuestion = {
+    question,
+    choices,
+    answer: choices[answerIndex.value],
+    explanation
+  };
+
+  const stored =
+    JSON.parse(localStorage.getItem("questions")) || [];
+
+  stored.push(newQuestion);
+
+  localStorage.setItem("questions", JSON.stringify(stored));
+
+  alert("問題を保存しました");
+  location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
