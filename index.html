@@ -195,8 +195,7 @@ button {
 
 </section>
   
-<button id="startQuizBtn"
-        onclick="startQuiz()"
+<button onclick="goToQuiz()"
         style="
           width:100%;
           padding:16px;
@@ -207,7 +206,7 @@ button {
           border-radius:12px;
           margin-bottom:16px;
         ">
-  問題を解く（20問）
+  問題を解く
 </button>
   
   <section id="quizScreen"
@@ -581,6 +580,10 @@ function startQuiz() {
 
   // 問題画面を表示
   document.getElementById("quizScreen").style.display = "block";
+}
+
+function goToQuiz() {
+  window.location.href = "quiz.html";
 }
   
 </script>
