@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>問題管理｜Study Habits</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f4f4;
+}
+header {
+  background: #b00020;
+  color: white;
+  text-align: center;
+  padding: 16px;
+  font-size: 18px;
+  font-weight: bold;
+}
+main {
+  padding: 16px;
+  max-width: 700px;
+  margin: auto;
+}
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+}
+.edit { background:#b00020; color:white; }
+.delete { background:#ccc; }
+.save { background:#4caf50; color:white; }
+.cancel { background:#aaa; color:white; }
+input, textarea, select {
+  width: 100%;
+  margin-top: 6px;
+  margin-bottom: 10px;
+  padding: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>問題管理</header>
+
+<main id="list"></main>
+
+<script>
+let questions =
+  JSON.parse(localStorage.getItem("questions")) || [];
+
+function save() {
+  localStorage.setItem("questions", JSON.stringify(questions));
+  render();
+}
+
+function render() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  questions.forEach((q, index) => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <strong>${q.question}</strong>
+      <p>正解：${q.answer}</p>
+      <button class="edit">編集</button>
+      <button class="delete">削除</button>
+    `;
+
+    card.querySelector(".edit").onclick = () => edit(card, index);
+    card.querySelector(".delete").onclick = () => {
+      if (confirm("この問題を削除しますか？")) {
+        questions.splice(index, 1);
+        save();
+      }
+    };
+
+    list.appendChild(card);
+  });
+}
+
+function edit(card, index) {
+  const q = questions[index];
+
+  card.innerHTML = `
+    <input value="${q.question}">
+    ${q.choices.map(c => `<input value="${c}">`).join("")}
+    <select>
+      ${q.choices.map(c =>
+        `<option ${c===q.answer?"selected":""}>${c}</option>`
+      ).join("")}
+    </select>
+    <textarea>${q.explanation || ""}</textarea>
+    <button class="save">保存</button>
+    <button class="cancel">キャンセル</button>
+  `;
+
+  card.querySelector(".save").onclick = () => {
+    const inputs = card.querySelectorAll("input");
+    const select = card.querySelector("select");
+    const textarea = card.querySelector("textarea");
+
+    questions[index] = {
+      ...q,
+      question: inputs[0].value,
+      choices: [...inputs].slice(1).map(i => i.value),
+      answer: select.value,
+      explanation: textarea.value
+    };
+    save();
+  };
+
+  card.querySelector(".cancel").onclick = render;
+}
+
+render();
+</script>
+
+</body>
+</html>
