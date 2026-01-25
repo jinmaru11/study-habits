@@ -75,6 +75,18 @@ button {
 }
 
 .calendar-header {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* 左右ボタンを端に固定 */
+.month-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #b00020;.calendar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -147,11 +159,14 @@ button {
   <!-- 学習カレンダー -->  
 <section class="card">
   <div class="calendar-header">
-  <button class="month-btn" onclick="prevMonth()">‹</button>
+   <button class="month-btn left" onclick="prevMonth()">‹</button>
 
-  <div style="display:flex;align-items:center;gap:8px;">
-    <div id="calendarTitle" class="calendar-title">2026年1月</div>
+   <div class="calendar-center">
+    <span id="calendarTitle" class="calendar-title">2026年1月</span>
     <button class="today-btn" onclick="goToday()">本日</button>
+   </div>
+
+   <button class="month-btn right" onclick="nextMonth()">›</button>
   </div>
 
   <button class="month-btn" onclick="nextMonth()">›</button>
