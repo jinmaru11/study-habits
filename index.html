@@ -343,49 +343,6 @@ function celebrateRecord() {
 /* ========= 初回表示 ========= */
 showQuestion();
 
-  function renderCalendar() {
-  const calendar = document.getElementById("calendar");
-  if (!calendar) return;
-
-  calendar.innerHTML = "";
-
-  const history = JSON.parse(localStorage.getItem("studyHistory")) || [];
-
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month + 1, 0).getDate();
-
-  // 空白
-  for (let i = 0; i < firstDay; i++) {
-    calendar.appendChild(document.createElement("div"));
-  }
-
-  // 日付
-  for (let d = 1; d <= lastDate; d++) {
-    const dateStr =
-      year + "-" +
-      String(month + 1).padStart(2, "0") + "-" +
-      String(d).padStart(2, "0");
-
-    const cell = document.createElement("div");
-    cell.style.padding = "8px";
-    cell.style.borderRadius = "8px";
-    cell.style.background = "#f5f5f5";
-
-    if (history.includes(dateStr)) {
-      cell.textContent = "⭐️";
-      cell.style.background = "#ffe082";
-    } else {
-      cell.textContent = d;
-    }
-
-    calendar.appendChild(cell);
-  }
-}
-
 // 初回描画
 renderCalendar();
 </script>
