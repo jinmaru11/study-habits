@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問題を追加｜Study Habits</title>
+<title>問題追加｜Study Habits</title>
 
 <style>
 body {
@@ -11,60 +11,43 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f4f4f4;
 }
-
 header {
   background: #b00020;
   color: white;
-  padding: 16px;
   text-align: center;
-  font-size: 20px;
+  padding: 16px;
+  font-size: 18px;
   font-weight: bold;
 }
-
 main {
-  padding: 16px;
   max-width: 600px;
   margin: auto;
+  padding: 16px;
 }
-
 .card {
   background: white;
   padding: 16px;
   border-radius: 12px;
-  margin-bottom: 16px;
 }
-
-label {
-  display: block;
-  margin-top: 12px;
-  font-weight: bold;
-}
-
-input[type="text"],
-textarea {
+input, textarea {
   width: 100%;
   padding: 10px;
-  margin-top: 6px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.choice-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin-top: 8px;
+  margin-bottom: 12px;
 }
-
 button {
-  width: 100%;
-  padding: 16px;
-  font-size: 18px;
+  padding: 12px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+.generate {
+  background: #eee;
+}
+.save {
   background: #b00020;
   color: white;
+  width: 100%;
   margin-top: 16px;
 }
 </style>
@@ -75,82 +58,95 @@ button {
 <header>問題を追加</header>
 
 <main>
+<div class="card">
 
-<section class="card">
+<label>問題文</label>
+<input id="question" placeholder="例：HRBPの主な役割は？">
 
-  <label>問題文</label>
-  <textarea id="question" rows="3"></textarea>
+<label>正解</label>
+<input id="answer" placeholder="正解を入力">
 
-  <label>選択肢（正解を選択）</label>
-
-  <div class="choice-row">
-    <input type="radio" name="answer" value="0">
-    <input type="text" id="c0">
-  </div>
-
-  <div class="choice-row">
-    <input type="radio" name="answer" value="1">
-    <input type="text" id="c1">
-  </div>
-
-  <div class="choice-row">
-    <input type="radio" name="answer" value="2">
-    <input type="text" id="c2">
-  </div>
-
-  <div class="choice-row">
-    <input type="radio" name="answer" value="3">
-    <input type="text" id="c3">
-  </div>
-
-  <label>解説</label>
-  <textarea id="explanation" rows="3"></textarea>
-
-  <button onclick="saveQuestion()">保存する</button>
-
-</section>
-
-<button onclick="location.href='index.html'" style="background:#555;">
-  戻る
+<button class="generate" onclick="generateChoices()">
+不正解候補を提案
 </button>
 
+<div id="choicesArea"></div>
+
+<label>解説（任意）</label>
+<textarea id="explanation" placeholder="未入力でも保存できます"></textarea>
+
+<button class="save" onclick="saveQuestion()">保存</button>
+
+</div>
 </main>
 
 <script>
-function saveQuestion() {
-  const question = document.getElementById("question").value.trim();
-  const choices = [
-    document.getElementById("c0").value.trim(),
-    document.getElementById("c1").value.trim(),
-    document.getElementById("c2").value.trim(),
-    document.getElementById("c3").value.trim()
-  ];
-  const explanation =
-    document.getElementById("explanation").value.trim();
-
-  const answerIndex =
-    document.querySelector('input[name="answer"]:checked');
-
-  if (!question || choices.some(c => !c) || !answerIndex) {
-    alert("すべて入力し、正解を選択してください");
+function generateChoices() {
+  const answer = document.getElementById("answer").value.trim();
+  if (!answer) {
+    alert("正解を先に入力してください");
     return;
   }
 
-  const newQuestion = {
-    question,
-    choices,
-    answer: choices[answerIndex.value],
-    explanation
-  };
+  const candidates = [
+    answer + "の一部",
+    answer + "のみを担当する",
+    "主に管理業務を行う",
+    "経営とは関与しない",
+    "現場業務が中心である"
+  ];
 
-  const stored =
+  const area = document.getElementById("choicesArea");
+  area.innerHTML = "<p>不正解候補（選択）</p>";
+
+  candidates.forEach(text => {
+    const label = document.createElement("label");
+    label.innerHTML = `
+      <input type="checkbox" value="${text}"> ${text}
+    `;
+    area.appendChild(label);
+    area.appendChild(document.createElement("br"));
+  });
+}
+
+function saveQuestion() {
+  const question = document.getElementById("question").value.trim();
+  const answer = document.getElementById("answer").value.trim();
+  const explanation =
+    document.getElementById("explanation").value.trim();
+
+  if (!question || !answer) {
+    alert("問題文と正解は必須です");
+    return;
+  }
+
+  const selected =
+    [...document.querySelectorAll("#choicesArea input:checked")]
+    .map(i => i.value);
+
+  if (selected.length < 3) {
+    alert("不正解を3つ以上選んでください");
+    return;
+  }
+
+  const choices =
+    [answer, ...selected.slice(0,3)]
+    .sort(() => Math.random() - 0.5);
+
+  const data =
     JSON.parse(localStorage.getItem("questions")) || [];
 
-  stored.push(newQuestion);
+  data.push({
+    id: crypto.randomUUID(),
+    question,
+    choices,
+    answer,
+    explanation: explanation || ""
+  });
 
-  localStorage.setItem("questions", JSON.stringify(stored));
+  localStorage.setItem("questions", JSON.stringify(data));
 
-  alert("問題を保存しました");
+  alert("保存しました");
   location.href = "index.html";
 }
 </script>
