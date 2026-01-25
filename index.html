@@ -73,6 +73,37 @@ button {
 .calendar-star {
   font-size: 18px;
 }
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.month-btn {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: #b00020;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+}
+
+.calendar-title {
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;   /* ← 改行させない */
+}  
+
+#calendar {
+  min-height: 300px;   /* 好きな高さでOK（例） */
+}
+
+  
 </style>
 </head>
 
@@ -105,6 +136,12 @@ button {
   
   <!-- 学習カレンダー -->  
 <section class="card">
+  <div class="calendar-header">
+  <button class="month-btn" onclick="prevMonth()">‹</button>
+  <div id="calendarTitle" class="calendar-title">2026年1月</div>
+  <button class="month-btn" onclick="nextMonth()">›</button>
+</div>
+  
   <div style="
     display:flex;
     align-items:center;
@@ -122,6 +159,7 @@ button {
               gap:6px;
               text-align:center;">
   </div>
+
 </section>
   
   <!-- 問題表示 -->
@@ -207,6 +245,14 @@ function renderCalendar(year, month) {
 
     calendar.appendChild(cell);
   }
+  // 6週（42マス）に揃える
+ const totalCells =
+   7 + firstDay + lastDate; // 曜日 + 空白 + 日付
+ const remaining = 42 - (totalCells - 7);
+
+ for (let i = 0; i < remaining; i++) {
+   calendar.appendChild(document.createElement("div"));
+ }
 }
   
 function calculateStreak() {
