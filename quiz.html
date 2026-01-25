@@ -3,107 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問題に挑戦｜Study Habits</title>
+<title>Quiz</title>
 
 <style>
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f4f4f4;
+  margin:0;
+  background:#f4f4f4;
+  font-family:-apple-system;
 }
 header {
-  background: #b00020;
-  color: white;
-  text-align: center;
-  padding: 16px;
+  background:#b00020;
+  color:white;
+  padding:16px;
+  text-align:center;
 }
 main {
-  max-width: 600px;
-  margin: auto;
-  padding: 16px;
+  padding:16px;
+  max-width:600px;
+  margin:auto;
 }
 .card {
-  background: white;
-  padding: 16px;
-  border-radius: 12px;
+  background:white;
+  padding:16px;
+  border-radius:12px;
 }
 .choice {
-  margin-top: 10px;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  background: #eee;
-  width: 100%;
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border:none;
+  border-radius:8px;
+  font-size:15px;
 }
-.correct { background:#b00020; color:white; }
-.wrong { background:#ccc; }
+.correct { background:#b00020;color:white; }
+.wrong { background:#ccc;color:#333; }
+
+/* ===== 演出 ===== */
+.overlay {
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.hero {
+  padding:20px;
+  border-radius:14px;
+  background:gold;
+  animation:flip 1s;
+}
+@keyframes flip {
+  from {transform:rotateY(90deg)}
+  to {transform:rotateY(0)}
+}
 </style>
 </head>
 
 <body>
-
-<header>
-  問題に挑戦
-  <div id="progress"></div>
-</header>
-
+<header>問題に挑戦</header>
 <main>
-  <div class="card">
-    <div id="q"></div>
-    <div id="c"></div>
-  </div>
-  <button onclick="next()">次へ</button>
+<div class="card">
+  <div id="q"></div>
+  <div id="choices"></div>
+</div>
+<button onclick="next()" style="margin-top:16px;width:100%">次へ</button>
 </main>
 
 <script>
-const qs =
+const questions =
   JSON.parse(localStorage.getItem("questions")) || [];
 
 let i = 0;
-let done = false;
+let answered = false;
 
 function show() {
-  done = false;
-  document.getElementById("q").textContent = qs[i].question;
-  document.getElementById("progress").textContent =
-    `${i+1} / ${qs.length}`;
-
-  const c = document.getElementById("c");
+  answered = false;
+  const q = questions[i];
+  document.getElementById("q").textContent = q.question;
+  const c = document.getElementById("choices");
   c.innerHTML = "";
-
-  qs[i].choices.forEach(x => {
-    const b = document.createElement("button");
-    b.className = "choice";
-    b.textContent = x;
-    b.onclick = () => answer(b, x);
+  q.choices.forEach(x=>{
+    const b=document.createElement("button");
+    b.className="choice";
+    b.textContent=x;
+    b.onclick=()=>answer(b,x===q.answer);
     c.appendChild(b);
   });
 }
-
-function answer(btn, x) {
-  if (done) return;
-  done = true;
-
-  document.querySelectorAll(".choice").forEach(b => {
-    if (b.textContent === qs[i].answer)
+function answer(btn,ok){
+  if(answered)return;
+  answered=true;
+  document.querySelectorAll(".choice").forEach(b=>{
+    if(b.textContent===questions[i].answer)
       b.classList.add("correct");
-    else if (b === btn)
+    else if(b===btn)
       b.classList.add("wrong");
-    b.disabled = true;
   });
 }
-
-function next() {
-  if (!done) return alert("回答してください");
+function next(){
+  if(!answered)return alert("回答してください");
   i++;
-  if (i >= qs.length) {
-    alert("完了！");
-    location.href = "index.html";
-  } else show();
+  if(i>=questions.length) finish();
+  else show();
+}
+function finish(){
+  const today=new Date().toISOString().slice(0,10);
+  if(localStorage.getItem("lastStudyDate")!==today){
+    localStorage.setItem("lastStudyDate",today);
+    let s=parseFloat(localStorage.getItem("growthScore"))||1;
+    s*=1.0101;
+    localStorage.setItem("growthScore",s);
+    giveCard();
+  }
+  location.href="index.html";
+}
+
+/* ===== カード獲得 ===== */
+function giveCard(){
+  const all=[
+    {name:"アリストテレス",quote:"習慣は第二の天性",rarity:"common"},
+    {name:"孔子",quote:"学びて時に之を習う",rarity:"rare"},
+    {name:"アインシュタイン",quote:"努力は裏切らない",rarity:"legendary"}
+  ];
+  let pool=all.filter(c=>c.rarity==="common");
+  if(questions.length>=20) pool=all;
+  const card=pool[Math.floor(Math.random()*pool.length)];
+
+  const owned=
+    JSON.parse(localStorage.getItem("heroCards"))||[];
+  owned.push(card);
+  localStorage.setItem("heroCards",JSON.stringify(owned));
+
+  if(card.rarity==="legendary"){
+    const o=document.createElement("div");
+    o.className="overlay";
+    o.innerHTML=`<div class="hero">${card.name}</div>`;
+    document.body.appendChild(o);
+    setTimeout(()=>o.remove(),2000);
+  }
 }
 
 show();
 </script>
-
 </body>
 </html>
