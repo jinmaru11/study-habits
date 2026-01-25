@@ -48,6 +48,24 @@ button {
   font-size: 28px;
   color: #b30000;
 }
+  .calendar-cell {
+  height: 44px;
+  border-radius: 8px;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.calendar-cell.today {
+  border: 2px solid #b00020;
+  font-weight: bold;
+}
+
+.calendar-star {
+  font-size: 18px;
+}
 </style>
 </head>
 
@@ -66,7 +84,31 @@ button {
     <div>過去最高：<span id="maxScore">1.00</span></div>
     <div id="secretaryMessage" style="margin-top:8px;font-size:14px;color:#b00020;"></div>
   </section>
+  
+<!-- 学習カレンダー -->
+<section class="card">
+  <div id="calendarHeader"
+       style="font-weight:bold;
+              font-size:16px;
+              text-align:center;
+              margin-bottom:8px;">
+  </div>
 
+  <div id="calendarWeek"
+       style="display:grid;
+              grid-template-columns:repeat(7,1fr);
+              font-size:12px;
+              text-align:center;
+              color:#666;">
+  </div>
+
+  <div id="calendarGrid"
+       style="display:grid;
+              grid-template-columns:repeat(7,1fr);
+              gap:6px;">
+  </div>
+</section>
+  
   <!-- 問題表示 -->
   <section style="background:#fff;padding:16px;border-radius:12px;margin-bottom:16px;">
     <div id="questionText" style="font-size:18px;margin-bottom:12px;">
@@ -86,6 +128,40 @@ button {
 </main>
 
 <script>
+  /* ========= カレンダー描画 ========= */
+function renderCalendar() {
+  const calendar = document.getElementById("calendar");
+  calendar.innerHTML = "";
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const lastDate = new Date(year, month + 1, 0).getDate();
+
+  // 曜日ヘッダー
+  ["日","月","火","水","木","金","土"].forEach(d => {
+    const el = document.createElement("div");
+    el.textContent = d;
+    el.style.fontWeight = "bold";
+    calendar.appendChild(el);
+  });
+
+  // 空白
+  for (let i = 0; i < firstDay; i++) {
+    calendar.appendChild(document.createElement("div"));
+  }
+
+  // 日付
+  for (let d = 1; d <= lastDate; d++) {
+    const dateKey = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const cell = document.createElement("div");
+    cell.textContent = studyHistory[dateKey] ? "⭐️" : d;
+    calendar.appendChild(cell);
+  }
+}
+  
 const today = new Date().toISOString().slice(0,10);
 const lastStudyDate = localStorage.getItem("lastStudyDate");
 
@@ -112,6 +188,9 @@ let questions = JSON.parse(localStorage.getItem("questions")) || [
 let todayAnswered = false;
 let currentQuestionIndex = 0;
 
+/* ========= 学習履歴 ========= */
+let studyHistory = JSON.parse(localStorage.getItem("studyHistory")) || {};
+  
 /* ========= 秘書メッセージ ========= */
 const secretaryMessages = [
   "秘書より：過去最高を更新しました。素晴らしい継続です。",
@@ -211,6 +290,12 @@ function completeToday() {
     localStorage.setItem("maxScore", maxScore);
 
     todayAnswered = true;
+    // 今日の日付キー
+const todayKey = new Date().toISOString().slice(0,10);
+
+// ⭐️ 保存
+studyHistory[todayKey] = true;
+localStorage.setItem("studyHistory", JSON.stringify(studyHistory));
 
     // 表示更新
     document.getElementById("currentScore").textContent = growthScore.toFixed(2);
@@ -249,6 +334,7 @@ function celebrateRecord() {
   
 /* ========= 初回表示 ========= */
 showQuestion();
+renderCalendar();
 </script>
   
 </body>
