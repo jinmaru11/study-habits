@@ -3,148 +3,230 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz</title>
+<title>問題に挑戦｜Study Habits</title>
 
 <style>
-body {
+body{
   margin:0;
   background:#f4f4f4;
-  font-family:-apple-system;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
-header {
+header{
   background:#b00020;
   color:white;
   padding:16px;
   text-align:center;
+  font-weight:bold;
 }
-main {
-  padding:16px;
+main{
   max-width:600px;
   margin:auto;
+  padding:16px;
 }
-.card {
+.card{
   background:white;
   padding:16px;
   border-radius:12px;
 }
-.choice {
+.choice{
   width:100%;
-  padding:12px;
-  margin-top:8px;
+  padding:14px;
+  margin-top:10px;
   border:none;
-  border-radius:8px;
-  font-size:15px;
+  border-radius:10px;
+  font-size:16px;
+  background:#eee;
 }
-.correct { background:#b00020;color:white; }
-.wrong { background:#ccc;color:#333; }
+.correct{ background:#b00020; color:white; }
+.wrong{ background:#ccc; color:#333; }
 
-/* ===== 演出 ===== */
-.overlay {
+button.next{
+  margin-top:16px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+  background:#b00020;
+  color:white;
+}
+
+/* ===== 偉人カード演出 ===== */
+.overlay{
   position:fixed;
   inset:0;
   background:rgba(0,0,0,0.6);
   display:flex;
   align-items:center;
   justify-content:center;
+  z-index:999;
 }
-.hero {
-  padding:20px;
-  border-radius:14px;
+.hero{
+  padding:24px;
+  border-radius:16px;
+  text-align:center;
   background:gold;
   animation:flip 1s;
+  box-shadow:0 0 20px rgba(255,215,0,0.8);
 }
-@keyframes flip {
-  from {transform:rotateY(90deg)}
-  to {transform:rotateY(0)}
+.hero.common{ background:#e0e0e0; box-shadow:none; }
+.hero.rare{ background:#8ecae6; }
+.hero.legendary{
+  background:linear-gradient(135deg,#ffd700,#fff5b7,#ffd700);
+}
+.hero h2{ margin:0; }
+.hero p{ margin:6px 0 0; font-size:14px; }
+
+@keyframes flip{
+  from{ transform:rotateY(90deg); opacity:0 }
+  to{ transform:rotateY(0); opacity:1 }
 }
 </style>
 </head>
 
 <body>
-<header>問題に挑戦</header>
+
+<header>
+  問題に挑戦
+  <div id="progress" style="font-size:14px;margin-top:4px;"></div>
+</header>
+
 <main>
-<div class="card">
-  <div id="q"></div>
-  <div id="choices"></div>
-</div>
-<button onclick="next()" style="margin-top:16px;width:100%">次へ</button>
+  <div class="card">
+    <div id="q" style="font-size:18px;font-weight:bold;"></div>
+    <div id="choices"></div>
+  </div>
+  <button class="next" onclick="next()">次へ</button>
 </main>
 
 <script>
+/* ===== 問題 ===== */
 const questions =
   JSON.parse(localStorage.getItem("questions")) || [];
 
-let i = 0;
-let answered = false;
+if(questions.length===0){
+  alert("問題がありません");
+  location.href="index.html";
+}
 
-function show() {
-  answered = false;
-  const q = questions[i];
-  document.getElementById("q").textContent = q.question;
-  const c = document.getElementById("choices");
-  c.innerHTML = "";
+let i=0;
+let answered=false;
+
+/* ===== 偉人マスタ ===== */
+const HEROES=[
+  {id:"aristotle",name:"アリストテレス",job:"哲学者",rarity:"common",quote:"習慣は第二の天性である"},
+  {id:"confucius",name:"孔子",job:"思想家",rarity:"rare",quote:"学びて時に之を習う"},
+  {id:"einstein",name:"アインシュタイン",job:"理論物理学者",rarity:"legendary",quote:"想像力は知識より重要だ"}
+];
+
+/* ===== 表示 ===== */
+function show(){
+  answered=false;
+  const q=questions[i];
+  document.getElementById("q").textContent=q.question;
+  document.getElementById("progress").textContent=`${i+1} / ${questions.length}`;
+
+  const c=document.getElementById("choices");
+  c.innerHTML="";
   q.choices.forEach(x=>{
     const b=document.createElement("button");
     b.className="choice";
     b.textContent=x;
-    b.onclick=()=>answer(b,x===q.answer);
+    b.onclick=()=>answer(b,x);
     c.appendChild(b);
   });
 }
-function answer(btn,ok){
+
+/* ===== 回答 ===== */
+function answer(btn,x){
   if(answered)return;
   answered=true;
+
   document.querySelectorAll(".choice").forEach(b=>{
     if(b.textContent===questions[i].answer)
       b.classList.add("correct");
     else if(b===btn)
       b.classList.add("wrong");
+    b.disabled=true;
   });
 }
+
+/* ===== 次へ ===== */
 function next(){
-  if(!answered)return alert("回答してください");
+  if(!answered) return alert("回答してください");
   i++;
   if(i>=questions.length) finish();
   else show();
 }
+
+/* ===== 完了処理 ===== */
 function finish(){
   const today=new Date().toISOString().slice(0,10);
-  if(localStorage.getItem("lastStudyDate")!==today){
+  const last=localStorage.getItem("lastStudyDate");
+
+  if(last!==today){
     localStorage.setItem("lastStudyDate",today);
+
     let s=parseFloat(localStorage.getItem("growthScore"))||1;
     s*=1.0101;
     localStorage.setItem("growthScore",s);
-    giveCard();
+
+    if(i===questions.length) giveHero();
   }
+
+  alert("本日の学習を完了しました！");
   location.href="index.html";
 }
 
-/* ===== カード獲得 ===== */
-function giveCard(){
-  const all=[
-    {name:"アリストテレス",quote:"習慣は第二の天性",rarity:"common"},
-    {name:"孔子",quote:"学びて時に之を習う",rarity:"rare"},
-    {name:"アインシュタイン",quote:"努力は裏切らない",rarity:"legendary"}
-  ];
-  let pool=all.filter(c=>c.rarity==="common");
-  if(questions.length>=20) pool=all;
-  const card=pool[Math.floor(Math.random()*pool.length)];
-
+/* ===== 偉人カード付与 ===== */
+function giveHero(){
   const owned=
     JSON.parse(localStorage.getItem("heroCards"))||[];
-  owned.push(card);
+
+  const ownedIds=owned.map(c=>c.id);
+
+  // プール作成
+  let pool=HEROES.filter(h=>h.rarity==="common");
+
+  if(i===questions.length){
+    pool=[
+      ...HEROES.filter(h=>h.rarity==="common"),
+      ...HEROES.filter(h=>h.rarity==="rare"),
+      ...HEROES.filter(h=>h.rarity==="legendary")
+    ];
+  }
+
+  // Commonは既存所持を出しやすく
+  const weighted=[];
+  pool.forEach(h=>{
+    const w = h.rarity==="common" && ownedIds.includes(h.id) ? 3 : 1;
+    for(let k=0;k<w;k++) weighted.push(h);
+  });
+
+  const hero=weighted[Math.floor(Math.random()*weighted.length)];
+  owned.push(hero);
   localStorage.setItem("heroCards",JSON.stringify(owned));
 
-  if(card.rarity==="legendary"){
-    const o=document.createElement("div");
-    o.className="overlay";
-    o.innerHTML=`<div class="hero">${card.name}</div>`;
-    document.body.appendChild(o);
-    setTimeout(()=>o.remove(),2000);
-  }
+  if(hero.rarity==="legendary") showHero(hero);
+}
+
+/* ===== 演出 ===== */
+function showHero(hero){
+  const o=document.createElement("div");
+  o.className="overlay";
+  o.innerHTML=`
+    <div class="hero ${hero.rarity}">
+      <h2>${hero.name}</h2>
+      <p>${hero.job}</p>
+      <p style="margin-top:8px;">「${hero.quote}」</p>
+    </div>
+  `;
+  document.body.appendChild(o);
+  setTimeout(()=>o.remove(),1800);
 }
 
 show();
 </script>
+
 </body>
 </html>
