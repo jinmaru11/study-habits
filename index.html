@@ -81,6 +81,20 @@ button {
   margin-bottom: 12px;
 }
 
+.calendar-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== カレンダー専用ボタンの上書き ===== */
+.calendar-header button {
+  width: auto;        /* ← 100% を無効化 */
+  margin: 0;          /* ← 余計なズレ防止 */
+  padding: 0;
+}
+  
 /* 左右ボタンを端に固定 */
 .month-btn {
   width: 36px;
@@ -125,7 +139,7 @@ button {
   font-weight: bold;
   white-space: nowrap;
 }
-  
+ 
 </style>
 </head>
 
