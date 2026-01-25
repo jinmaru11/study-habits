@@ -85,7 +85,7 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 /* ===== カレンダー専用ボタンの上書き ===== */
@@ -120,7 +120,7 @@ button {
 }
 
 .calendar-title {
-  font-size: 28px;
+  font-size: 20px;
   font-weight: bold;
   white-space: nowrap;   /* ← 改行させない */
 }  
@@ -130,7 +130,8 @@ button {
 }
 
 .today-btn {
-  padding: 4px 12px;
+  min-width: 72px;          /* ← 横幅を確保（ここを調整） */
+  padding: 6px 14px;  
   font-size: 12px;
   border-radius: 8px;
   border: 3px solid #b00020;
