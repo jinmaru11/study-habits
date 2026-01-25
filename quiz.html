@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Study Habits｜問題</title>
+<title>問題に挑戦｜Study Habits</title>
 
 <style>
 body {
@@ -11,6 +11,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f4f4f4;
 }
+
 header {
   background: #b00020;
   color: white;
@@ -19,170 +20,174 @@ header {
   font-size: 18px;
   font-weight: bold;
 }
-  
+
+main {
+  padding: 16px;
+  max-width: 600px;
+  margin: auto;
+}
+
 .card {
   background: white;
-  margin: 16px;
   padding: 16px;
   border-radius: 12px;
+  margin-bottom: 16px;
 }
+
 .choice-btn {
-  background: #eee;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  margin-bottom: 8px;
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
   font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  background: #eee;
+}
+
+.choice-btn.correct {
+  background: #4caf50;
+  color: white;
+}
+
+.choice-btn.wrong {
+  background: #f44336;
+  color: white;
+}
+
+.explanation {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+button.next-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 18px;
+  border: none;
+  border-radius: 12px;
+  background: #b00020;
+  color: white;
+  margin-top: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<header>問題に挑戦</header>
+<header>
+  問題に挑戦
+  <div id="progress" style="font-size:14px;margin-top:4px;"></div>
+</header>
 
-  <div style="padding:12px 16px;background:#fff;">
-  <div style="font-size:14px;margin-bottom:6px;">
-    進捗 <span id="progressText">1 / 20</span>
-  </div>
-
-  <div style="
-    width:100%;
-    height:10px;
-    background:#eee;
-    border-radius:6px;
-    overflow:hidden;
-  ">
-    <div id="progressBar"
-         style="
-           height:100%;
-           width:0%;
-           background:#b00020;
-           transition: width 0.3s;
-         ">
-    </div>
-  　</div>
-　</div>
-  
 <main>
 
-  <section class="card">
-    <div id="questionText"
-     style="
-       padding:16px;
-       margin:16px;
-       background:#fff;
-       border-radius:12px;
-       font-size:18px;
-       font-weight:600;
-     ">
-    </div>
+<section class="card">
+  <div id="questionText" style="font-size:18px;font-weight:bold;"></div>
+  <div id="choices"></div>
+  <div id="explanation" class="explanation" style="display:none;"></div>
+</section>
 
-    <div id="choices"
-     style="
-       display:flex;
-       flex-direction:column;
-       gap:12px;
-       padding:0 16px;
-     ">
-    </div>
-  </section>
-
-  <button onclick="nextQuestion()"
-          style="
-            width:90%;
-            margin:0 auto;
-            display:block;
-            padding:16px;
-            font-size:18px;
-            background:#b00020;
-            color:white;
-            border:none;
-            border-radius:12px;
-          ">
-    次へ
-  </button>
+<button class="next-btn" onclick="nextQuestion()">次へ</button>
 
 </main>
 
 <script>
-const TOTAL_QUESTIONS = 20;
+/* ===== 問題取得 ===== */
+const stored =
+  JSON.parse(localStorage.getItem("questions")) || [];
 
-// ===== 問題データ =====
-let questions = JSON.parse(localStorage.getItem("questions")) || [
-  {
-    question: "Study Habitsは何を目的としたアプリ？",
-    choices: [
-      "学習を習慣化し成長を可視化する",
-      "SNSで勉強仲間を探す",
-      "資格試験を代行する",
-      "動画を見るため"
-    ],
-    answer: "学習を習慣化し成長を可視化する",
-    explanation: "毎日の復習を通じて成長を可視化します。"
+if (stored.length === 0) {
+  alert("問題がまだありません。先に問題を追加してください。");
+  location.href = "index.html";
+}
+
+/* ===== シャッフル ===== */
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
-];
+}
 
-// シャッフルして20問だけ使う
-questions = questions
-  .sort(() => Math.random() - 0.5)
-  .slice(0, TOTAL_QUESTIONS);
+/* ===== 出題準備 ===== */
+const TOTAL = 20;
+shuffle(stored);
+const quizQuestions = stored.slice(0, TOTAL);
 
-let currentQuestionIndex = 0;
+let current = 0;
+let answered = false;
 
+/* ===== 表示 ===== */
 function showQuestion() {
-  const q = questions[currentQuestionIndex];
+  answered = false;
 
+  const q = quizQuestions[current];
   document.getElementById("questionText").textContent = q.question;
+  document.getElementById("progress").textContent =
+    `${current + 1} / ${quizQuestions.length}`;
 
   const choicesDiv = document.getElementById("choices");
   choicesDiv.innerHTML = "";
 
   q.choices.forEach(choice => {
     const btn = document.createElement("button");
-    btn.textContent = choice;
     btn.className = "choice-btn";
-    btn.onclick = () => selectAnswer(choice, q.answer);
+    btn.textContent = choice;
+    btn.onclick = () => selectAnswer(btn, choice, q.answer, q.explanation);
     choicesDiv.appendChild(btn);
   });
 
-  updateProgress();
+  document.getElementById("explanation").style.display = "none";
 }
 
-function selectAnswer(selected, correct) {
+/* ===== 回答 ===== */
+function selectAnswer(btn, selected, correct, explanation) {
+  if (answered) return;
+  answered = true;
+
   const buttons = document.querySelectorAll(".choice-btn");
-  buttons.forEach(btn => {
-    btn.disabled = true;
-    if (btn.textContent === correct) btn.style.background = "#4CAF50";
-    if (btn.textContent === selected && selected !== correct) {
-      btn.style.background = "#f44336";
-    }
+
+  buttons.forEach(b => {
+    b.disabled = true;
+    if (b.textContent === correct) b.classList.add("correct");
   });
+
+  if (selected !== correct) {
+    btn.classList.add("wrong");
+  }
+
+  const exp = document.getElementById("explanation");
+  exp.innerHTML =
+    `<strong>解説</strong><br>${explanation || "（解説なし）"}`;
+  exp.style.display = "block";
 }
 
+/* ===== 次へ ===== */
 function nextQuestion() {
-  currentQuestionIndex++;
-  if (currentQuestionIndex >= questions.length) {
+  if (!answered) {
+    alert("回答してください");
+    return;
+  }
+
+  current++;
+
+  if (current >= quizQuestions.length) {
     completeQuiz();
   } else {
     showQuestion();
   }
 }
 
+/* ===== 完了 ===== */
 function completeQuiz() {
-  alert("本日の学習を完了しました！");
-  window.location.href = "index.html";
+  alert("本日の問題をすべて解きました！");
+  location.href = "index.html";
 }
 
-function updateProgress() {
-  document.getElementById("progressText").textContent =
-    `${currentQuestionIndex + 1} / ${questions.length}`;
-
-  document.getElementById("progressBar").style.width =
-    `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
-}
-
-// 初期表示
+/* ===== 初期表示 ===== */
 showQuestion();
 </script>
 
