@@ -21,6 +21,11 @@ header {
   font-weight: bold;
 }
 
+#progress {
+  font-size: 14px;
+  margin-top: 4px;
+}
+
 main {
   padding: 16px;
   max-width: 600px;
@@ -42,16 +47,24 @@ main {
   border: none;
   border-radius: 10px;
   background: #eee;
+  color: #333;
 }
 
+/* 正解：Study Habits 赤 */
 .choice-btn.correct {
-  background: #4caf50;
+  background: #b00020;
   color: white;
 }
 
+/* 間違えた選択肢：グレー */
 .choice-btn.wrong {
-  background: #f44336;
+  background: #bbb;
   color: white;
+}
+
+/* 回答後に触れない選択肢 */
+.choice-btn.disabled {
+  opacity: 0.6;
 }
 
 .explanation {
@@ -62,7 +75,7 @@ main {
   font-size: 14px;
 }
 
-.next-btn {
+button.next-btn {
   width: 100%;
   padding: 16px;
   font-size: 18px;
@@ -79,7 +92,7 @@ main {
 
 <header>
   問題に挑戦
-  <div id="progress" style="font-size:14px;margin-top:4px;"></div>
+  <div id="progress"></div>
 </header>
 
 <main>
@@ -95,20 +108,15 @@ main {
 </main>
 
 <script>
-/* ===============================
-   問題読み込み
-=============================== */
-const storedQuestions =
-  JSON.parse(localStorage.getItem("questions")) || [];
+/* ===== 問題取得（add.html で追加された問題） ===== */
+const stored = JSON.parse(localStorage.getItem("questions")) || [];
 
-if (storedQuestions.length === 0) {
+if (stored.length === 0) {
   alert("問題がまだありません。先に問題を追加してください。");
   location.href = "index.html";
 }
 
-/* ===============================
-   シャッフル
-=============================== */
+/* ===== シャッフル ===== */
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -116,26 +124,22 @@ function shuffle(array) {
   }
 }
 
-/* ===============================
-   出題準備
-=============================== */
+/* ===== 出題準備 ===== */
 const TOTAL = 20;
-shuffle(storedQuestions);
-const quizQuestions = storedQuestions.slice(0, TOTAL);
+shuffle(stored);
+const quizQuestions = stored.slice(0, TOTAL);
 
-let currentIndex = 0;
+let current = 0;
 let answered = false;
 
-/* ===============================
-   問題表示
-=============================== */
+/* ===== 問題表示 ===== */
 function showQuestion() {
   answered = false;
 
-  const q = quizQuestions[currentIndex];
+  const q = quizQuestions[current];
   document.getElementById("questionText").textContent = q.question;
   document.getElementById("progress").textContent =
-    `${currentIndex + 1} / ${quizQuestions.length}`;
+    `${current + 1} / ${quizQuestions.length}`;
 
   const choicesDiv = document.getElementById("choices");
   choicesDiv.innerHTML = "";
@@ -152,68 +156,68 @@ function showQuestion() {
   document.getElementById("explanation").style.display = "none";
 }
 
-/* ===============================
-   回答処理
-=============================== */
+/* ===== 回答処理 ===== */
 function selectAnswer(btn, selected, correct, explanation) {
   if (answered) return;
   answered = true;
 
-  document.querySelectorAll(".choice-btn").forEach(b => {
+  const buttons = document.querySelectorAll(".choice-btn");
+
+  buttons.forEach(b => {
     b.disabled = true;
+
     if (b.textContent === correct) {
-      b.classList.add("correct");
+      b.classList.add("correct"); // 正解は赤
+    } else {
+      b.classList.add("disabled"); // それ以外は薄く
     }
   });
 
   if (selected !== correct) {
-    btn.classList.add("wrong");
+    btn.classList.remove("disabled");
+    btn.classList.add("wrong"); // 間違えた選択肢はグレー
   }
 
   const exp = document.getElementById("explanation");
-  exp.innerHTML = `<strong>解説</strong><br>${explanation || "（解説なし）"}`;
+  exp.innerHTML =
+    `<strong>解説</strong><br>${explanation || "（解説なし）"}`;
   exp.style.display = "block";
 }
 
-/* ===============================
-   次の問題
-=============================== */
+/* ===== 次の問題 ===== */
 function nextQuestion() {
   if (!answered) {
     alert("回答してください");
     return;
   }
 
-  currentIndex++;
+  current++;
 
-  if (currentIndex >= quizQuestions.length) {
+  if (current >= quizQuestions.length) {
     completeQuiz();
   } else {
     showQuestion();
   }
 }
 
-/* ===============================
-   完了処理（1日1回成長）
-=============================== */
+/* ===== 完了処理（1日1回だけ成長） ===== */
 function completeQuiz() {
   const todayKey = new Date().toISOString().slice(0, 10);
   const lastStudyDate = localStorage.getItem("lastStudyDate");
 
-  // --- 1日1回ガード ---
   if (lastStudyDate === todayKey) {
     alert("本日はすでに学習済みです（成長は反映されません）");
     location.href = "index.html";
     return;
   }
 
-  // --- 学習履歴 ---
+  /* 学習履歴 */
   const history =
     JSON.parse(localStorage.getItem("studyHistory")) || {};
   history[todayKey] = true;
   localStorage.setItem("studyHistory", JSON.stringify(history));
 
-  // --- 成長スコア ---
+  /* 成長スコア */
   let growthScore =
     parseFloat(localStorage.getItem("growthScore")) || 1.0;
   let maxScore =
@@ -224,17 +228,13 @@ function completeQuiz() {
 
   localStorage.setItem("growthScore", growthScore);
   localStorage.setItem("maxScore", maxScore);
-
-  // --- 日付保存 ---
   localStorage.setItem("lastStudyDate", todayKey);
 
   alert("本日の学習を完了しました！");
   location.href = "index.html";
 }
 
-/* ===============================
-   初期表示
-=============================== */
+/* ===== 初期表示 ===== */
 showQuestion();
 </script>
 
