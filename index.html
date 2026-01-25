@@ -91,6 +91,17 @@ button {
     <div>過去最高：<span id="maxScore">1.00</span></div>
     <div id="secretaryMessage" style="margin-top:8px;font-size:14px;color:#b00020;"></div>
   </section>
+
+  <!-- 連続学習ストリーク -->
+<section class="card">
+  <div style="font-size:14px;color:#666;">連続学習ストリーク</div>
+  <div id="streakCount"
+       style="font-size:28px;
+              font-weight:bold;
+              color:#ff5722;">
+    🔥 0 日
+  </div>
+</section>
   
   <!-- 学習カレンダー -->  
 <section class="card">
@@ -196,6 +207,10 @@ function calculateStreak() {
 }
 // 初回描画
 renderCalendar();
+  
+const streak = calculateStreak();
+document.getElementById("streakCount").textContent =
+  `🔥 ${streak} 日`;
 </script>
   
 const today = new Date().toISOString().slice(0,10);
@@ -332,6 +347,11 @@ const todayKey = new Date().toISOString().slice(0,10);
 // ⭐️ 保存
 studyHistory[todayKey] = true;
 localStorage.setItem("studyHistory", JSON.stringify(studyHistory));
+
+// ⭐️ ストリーク  
+const streak = calculateStreak();
+document.getElementById("streakCount").textContent =
+  `🔥 ${streak} 日`;
 
     // 表示更新
     document.getElementById("currentScore").textContent = growthScore.toFixed(2);
