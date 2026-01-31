@@ -37,10 +37,19 @@ main{
   border-radius:12px;
   padding:12px;
   text-align:center;
-  min-height:180px;
+  min-height:200px;
   display:flex;
   flex-direction:column;
   justify-content:center;
+}
+
+/* ===== 画像 ===== */
+.hero-img{
+  width:72px;
+  height:72px;
+  border-radius:50%;
+  object-fit:cover;
+  margin:0 auto 8px;
 }
 
 /* ===== 所持済み ===== */
@@ -60,8 +69,8 @@ main{
   color:#888;
 }
 .silhouette{
-  width:60px;
-  height:60px;
+  width:72px;
+  height:72px;
   border-radius:50%;
   background:#aaa;
   margin:0 auto 8px;
@@ -74,6 +83,18 @@ main{
 .common{ border-top:6px solid #bbb; }
 .rare{ border-top:6px solid #4da3ff; }
 .legendary{ border-top:6px solid gold; }
+
+/* ===== ホームへ戻るボタン ===== */
+.home-btn{
+  margin:24px auto 8px;
+  width:100%;
+  padding:16px;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+  background:#b00020;
+  color:white;
+}
 </style>
 </head>
 
@@ -85,24 +106,65 @@ main{
 
 <main>
   <div class="grid" id="grid"></div>
+
+  <!-- ホームへ戻る -->
+  <button class="home-btn" onclick="location.href='index.html'">
+    ホームへ戻る
+  </button>
 </main>
 
 <script>
 /* =====================================================
-   偉人マスター（quizと同一構造）
+   偉人マスター
 ===================================================== */
 const HEROES = {
   common: [
-    { id:"c1", name:"エジソン", job:"発明家", quote:"天才とは1%のひらめきと99%の努力である" },
-    { id:"c2", name:"ダーウィン", job:"生物学者", quote:"生き残るのは最も強い者ではない" },
-    { id:"c3", name:"ナポレオン", job:"軍人", quote:"勝利は最も忍耐強い者にもたらされる" }
+    {
+      id:"c1",
+      name:"エジソン",
+      job:"発明家",
+      quote:"天才とは1%のひらめきと99%の努力である",
+      img:"images/heroes/edison.jpg"
+    },
+    {
+      id:"c2",
+      name:"ダーウィン",
+      job:"生物学者",
+      quote:"生き残るのは最も強い者ではない",
+      img:"images/heroes/darwin.jpg"
+    },
+    {
+      id:"c3",
+      name:"ナポレオン",
+      job:"軍人",
+      quote:"勝利は最も忍耐強い者にもたらされる",
+      img:"images/heroes/napoleon.jpg"
+    }
   ],
   rare: [
-    { id:"r1", name:"アインシュタイン", job:"物理学者", quote:"想像力は知識より重要だ" },
-    { id:"r2", name:"ガリレオ", job:"天文学者", quote:"それでも地球は動いている" }
+    {
+      id:"r1",
+      name:"アインシュタイン",
+      job:"物理学者",
+      quote:"想像力は知識より重要だ",
+      img:"images/heroes/einstein.jpg"
+    },
+    {
+      id:"r2",
+      name:"ガリレオ",
+      job:"天文学者",
+      quote:"それでも地球は動いている",
+      img:"images/heroes/galileo.jpg"
+    }
   ],
   legendary: [
-    { id:"l1", name:"レオナルド・ダ・ヴィンチ", job:"万能の天才", quote:"学ぶことをやめた者は老いる" }
+    {
+      id:"l1",
+      name:"レオナルド・ダ・ヴィンチ",
+      job:"万能の天才",
+      quote:"学ぶことをやめた者は老いる",
+      img:"images/heroes/leonardo.jpg"
+    }
   ]
 };
 
@@ -124,6 +186,7 @@ for(const [type, list] of Object.entries(HEROES)){
 
     if(isOwned){
       card.innerHTML = `
+        <img src="${hero.img}" class="hero-img" loading="lazy">
         <h3>${hero.name}</h3>
         <p>（${hero.job}）</p>
         <p>「${hero.quote}」</p>
