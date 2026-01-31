@@ -104,20 +104,6 @@ main{
   background:white;
   font-weight:bold;
 }
-
-/* ===== 偉人カード ===== */
-.hero{
-  padding:12px;
-  border-radius:10px;
-  margin-top:8px;
-}
-.common{ background:#e0e0e0; }
-.rare{ background:#8ecae6; }
-.legendary{
-  background:linear-gradient(135deg,#ffd700,#fff5b7,#ffd700);
-}
-.hero-name{ font-weight:bold; }
-.hero-job{ font-size:12px; opacity:0.8; }
 </style>
 </head>
 
@@ -153,11 +139,6 @@ main{
     <button class="month-btn" onclick="nextMonth()">›</button>
   </div>
   <div id="calendar"></div>
-</section>
-
-<section class="card">
-  <div style="font-weight:bold;margin-bottom:8px;">獲得した偉人カード</div>
-  <div id="heroes"></div>
 </section>
 
 </main>
@@ -235,23 +216,6 @@ function prevMonth(){ m--; if(m<0){m=11;y--;} render(); }
 function nextMonth(){ m++; if(m>11){m=0;y++;} render(); }
 function goToday(){ const t=new Date(); y=t.getFullYear(); m=t.getMonth(); render(); }
 render();
-
-/* ===== 偉人カード ===== */
-const heroes=JSON.parse(localStorage.getItem("heroCards"))||[];
-const box=document.getElementById("heroes");
-if(heroes.length===0){
-  box.textContent="まだカードがありません";
-}else{
-  heroes.forEach(h=>{
-    const d=document.createElement("div");
-    d.className=`hero ${h.rarity}`;
-    d.innerHTML=`
-      <div class="hero-name">${h.name}</div>
-      <div class="hero-job">${h.job}</div>
-    `;
-    box.appendChild(d);
-  });
-}
 </script>
 
 </body>
