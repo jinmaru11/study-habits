@@ -6,120 +6,230 @@
 <title>Study Habits</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f4f4f4;
+body{
+  margin:0;
+  background:#f4f4f4;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
 }
-header {
-  background: #b00020;
-  color: white;
-  padding: 16px;
-  text-align: center;
-  font-weight: bold;
+header{
+  background:#b00020;
+  color:white;
+  padding:16px;
+  text-align:center;
+  font-weight:bold;
 }
-main {
-  padding: 16px;
-  max-width: 600px;
-  margin: auto;
+main{
+  max-width:600px;
+  margin:auto;
+  padding:16px;
 }
-.card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
+.card{
+  background:white;
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:16px;
 }
 
 /* ===== ボタン ===== */
-.action-row {
-  display: flex;
-  gap: 12px;
+.actions{
+  display:flex;
+  gap:12px;
+  margin-bottom:16px;
 }
-button {
-  flex: 1;
-  padding: 14px;
-  font-size: 16px;
-  border: none;
-  border-radius: 10px;
-  background: #b00020;
-  color: white;
+.actions button{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  color:white;
+}
+.solve{ background:#b00020; }
+.add{ background:#555; }
+
+/* ===== ストリーク ===== */
+.streak{
+  font-size:18px;
+  font-weight:bold;
+  color:#ff5722;
 }
 
-/* ===== 偉人カード一覧 ===== */
-.cards {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* ===== カレンダー ===== */
+.calendar-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
 }
-.hero-card {
-  padding: 14px;
-  border-radius: 12px;
-  color: white;
-  font-weight: bold;
+.month-btn{
+  border:none;
+  background:#b00020;
+  color:white;
+  width:32px;
+  height:32px;
+  border-radius:50%;
 }
-.common { background: #888; }
-.rare { background: linear-gradient(135deg,#4a90e2,#357ab8); }
-.legendary {
-  background: linear-gradient(
-    120deg,
-    #f5d76e,
-    #fff2a8,
-    #f5d76e
-  );
-  animation: shine 3s linear infinite;
-  color: #5c4600;
+#calendar{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+  text-align:center;
 }
-@keyframes shine {
-  0% { background-position: 0% }
-  100% { background-position: 200% }
+.cal-cell{
+  height:40px;
+  border-radius:8px;
+  background:#eee;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+}
+.today{
+  border:2px solid #b00020;
+  background:white;
+  font-weight:bold;
+}
+
+/* ===== 偉人カード ===== */
+.hero{
+  padding:12px;
+  border-radius:10px;
+  margin-top:8px;
+}
+.common{ background:#e0e0e0; }
+.rare{ background:#8ecae6; }
+.legendary{
+  background:linear-gradient(135deg,#ffd700,#fff5b7,#ffd700);
+}
+.hero-name{
+  font-weight:bold;
+}
+.hero-job{
+  font-size:12px;
+  opacity:0.8;
 }
 </style>
 </head>
 
 <body>
+
 <header>Study Habits</header>
 
 <main>
 
+<!-- 成長スコア -->
 <section class="card">
   <div>成長スコア</div>
-  <div id="score" style="font-size:28px;color:#b00020;">1.00</div>
+  <div id="score" style="font-size:32px;color:#b00020;">1.00</div>
 </section>
 
-<div class="action-row">
-  <button onclick="location.href='quiz.html'">問題を解く</button>
-  <button onclick="location.href='add.html'" style="background:#555;">
-    問題を追加
-  </button>
+<!-- ストリーク -->
+<section class="card">
+  <div>連続学習ストリーク</div>
+  <div class="streak" id="streak">🔥 0 日</div>
+</section>
+
+<!-- アクション -->
+<div class="actions">
+  <button class="solve" onclick="location.href='quiz.html'">問題を解く</button>
+  <button class="add" onclick="location.href='add.html'">問題を追加</button>
 </div>
 
+<!-- カレンダー -->
 <section class="card">
-  <h3>獲得した偉人カード</h3>
-  <div id="cards" class="cards"></div>
+  <div class="calendar-header">
+    <button class="month-btn" onclick="prevMonth()">‹</button>
+    <div id="monthTitle"></div>
+    <button class="month-btn" onclick="nextMonth()">›</button>
+  </div>
+  <div id="calendar"></div>
+</section>
+
+<!-- 偉人カード -->
+<section class="card">
+  <div style="font-weight:bold;margin-bottom:8px;">獲得した偉人カード</div>
+  <div id="heroes"></div>
 </section>
 
 </main>
 
 <script>
-/* ===== スコア ===== */
+/* ===== 成長スコア ===== */
 document.getElementById("score").textContent =
-  (parseFloat(localStorage.getItem("growthScore")) || 1).toFixed(2);
+  (parseFloat(localStorage.getItem("growthScore"))||1).toFixed(2);
+
+/* ===== ストリーク ===== */
+function calcStreak(){
+  const h=JSON.parse(localStorage.getItem("studyHistory"))||{};
+  let d=new Date(),s=0;
+  while(true){
+    const k=d.toISOString().slice(0,10);
+    if(h[k]){ s++; d.setDate(d.getDate()-1); }
+    else break;
+  }
+  return s;
+}
+document.getElementById("streak").textContent =
+  `🔥 ${calcStreak()} 日`;
+
+/* ===== カレンダー ===== */
+let y,m;
+const now=new Date();
+y=now.getFullYear();
+m=now.getMonth();
+
+function render(){
+  const cal=document.getElementById("calendar");
+  cal.innerHTML="";
+  document.getElementById("monthTitle").textContent=`${y}年 ${m+1}月`;
+
+  const hist=JSON.parse(localStorage.getItem("studyHistory"))||{};
+  const today=new Date().toISOString().slice(0,10);
+
+  ["日","月","火","水","木","金","土"].forEach(d=>{
+    const e=document.createElement("div");
+    e.textContent=d;
+    e.style.fontWeight="bold";
+    cal.appendChild(e);
+  });
+
+  const fd=new Date(y,m,1).getDay();
+  const ld=new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<fd;i++) cal.appendChild(document.createElement("div"));
+
+  for(let d=1;d<=ld;d++){
+    const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const c=document.createElement("div");
+    c.className="cal-cell";
+    c.textContent=hist[key]?"⭐️":d;
+    if(key===today) c.classList.add("today");
+    cal.appendChild(c);
+  }
+}
+function prevMonth(){ m--; if(m<0){m=11;y--;} render(); }
+function nextMonth(){ m++; if(m>11){m=0;y++;} render(); }
+render();
 
 /* ===== 偉人カード表示 ===== */
-const owned =
-  JSON.parse(localStorage.getItem("heroCards")) || [];
+const heroes=
+  JSON.parse(localStorage.getItem("heroCards"))||[];
+const box=document.getElementById("heroes");
 
-const container = document.getElementById("cards");
-if (owned.length === 0) {
-  container.innerHTML = "<div style='color:#666'>まだカードがありません</div>";
+if(heroes.length===0){
+  box.textContent="まだカードがありません";
+}else{
+  heroes.forEach(h=>{
+    const d=document.createElement("div");
+    d.className=`hero ${h.rarity}`;
+    d.innerHTML=`
+      <div class="hero-name">${h.name}</div>
+      <div class="hero-job">${h.job}</div>
+    `;
+    box.appendChild(d);
+  });
 }
-
-owned.forEach(c => {
-  const div = document.createElement("div");
-  div.className = `hero-card ${c.rarity}`;
-  div.innerHTML = `${c.name}<br><small>${c.quote}</small>`;
-  container.appendChild(div);
-});
 </script>
+
 </body>
 </html>
