@@ -112,6 +112,14 @@ if(questions.length===0){
 let i=0;
 let answered=false;
 
+/* ===== 選択肢シャッフル ===== */
+function shuffle(array){
+  for(let i=array.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
+}
+
 /* ===== 偉人マスタ ===== */
 const HEROES=[
   {id:"aristotle",name:"アリストテレス",job:"哲学者",rarity:"common",quote:"習慣は第二の天性である"},
@@ -128,7 +136,12 @@ function show(){
 
   const c=document.getElementById("choices");
   c.innerHTML="";
-  q.choices.forEach(x=>{
+
+  // ★ ここが追加ポイント
+  const shuffledChoices=[...q.choices];
+  shuffle(shuffledChoices);
+
+  shuffledChoices.forEach(x=>{
     const b=document.createElement("button");
     b.className="choice";
     b.textContent=x;
@@ -185,21 +198,15 @@ function giveHero(){
 
   const ownedIds=owned.map(c=>c.id);
 
-  // プール作成
   let pool=HEROES.filter(h=>h.rarity==="common");
 
   if(i===questions.length){
-    pool=[
-      ...HEROES.filter(h=>h.rarity==="common"),
-      ...HEROES.filter(h=>h.rarity==="rare"),
-      ...HEROES.filter(h=>h.rarity==="legendary")
-    ];
+    pool=[...HEROES];
   }
 
-  // Commonは既存所持を出しやすく
   const weighted=[];
   pool.forEach(h=>{
-    const w = h.rarity==="common" && ownedIds.includes(h.id) ? 3 : 1;
+    const w=h.rarity==="common" && ownedIds.includes(h.id)?3:1;
     for(let k=0;k<w;k++) weighted.push(h);
   });
 
