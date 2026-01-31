@@ -41,20 +41,6 @@ input,textarea{
   box-sizing:border-box;
 }
 
-.choice{
-  display:flex;
-  gap:8px;
-  margin-top:8px;
-}
-.choice input{flex:1;}
-
-select{
-  width:100%;
-  padding:12px;
-  margin-top:8px;
-  border-radius:10px;
-}
-
 .btn{
   margin-top:12px;
   padding:12px;
@@ -86,19 +72,11 @@ select{
 <input id="question" placeholder="問題文">
 
 <div id="choices">
-  <input placeholder="選択肢①">
+  <input placeholder="選択肢①（正解）">
   <input placeholder="選択肢②">
   <input placeholder="選択肢③">
   <input placeholder="選択肢④">
 </div>
-
-<select id="answer">
-  <option value="">正解を選択</option>
-  <option value="0">選択肢①</option>
-  <option value="1">選択肢②</option>
-  <option value="2">選択肢③</option>
-  <option value="3">選択肢④</option>
-</select>
 
 <textarea id="explain" placeholder="解説（任意）"></textarea>
 
@@ -113,46 +91,50 @@ select{
 </main>
 
 <script>
+let questions =
+  JSON.parse(localStorage.getItem("questions")) || [];
+
 function save(){
-  const q=document.getElementById("question").value.trim();
-  const cs=[...document.querySelectorAll("#choices input")]
-    .map(i=>i.value.trim());
-  const ai=document.getElementById("answer").value;
+  const q = document.getElementById("question").value.trim();
+  const cs = [...document.querySelectorAll("#choices input")]
+    .map(i => i.value.trim());
 
   if(!q) return alert("問題文を入力してください");
-  if(cs.some(c=>!c)) return alert("選択肢は4つすべて入力してください");
-  if(ai==="") return alert("正解を選択してください");
+  if(cs.some(c => !c))
+    return alert("選択肢は4つすべて入力してください");
 
   questions.push({
-    question:q,
-    choices:cs,
-    answer:cs[ai],
-    explain:document.getElementById("explain").value||""
+    question: q,
+    choices: cs,
+    answer: cs[0], // ★ 一番上を正解に固定
+    explain: document.getElementById("explain").value || ""
   });
 
-  localStorage.setItem("questions",JSON.stringify(questions));
+  localStorage.setItem("questions", JSON.stringify(questions));
   location.reload();
 }
 
 function render(){
-  const l=document.getElementById("list");
-  l.innerHTML="";
+  const l = document.getElementById("list");
+  l.innerHTML = "";
   questions.forEach((q,i)=>{
-    const d=document.createElement("div");
-    d.className="q-item";
-    d.innerHTML=`
+    const d = document.createElement("div");
+    d.className = "q-item";
+    d.innerHTML = `
       <div>${q.question}</div>
       <button class="btn danger" onclick="del(${i})">削除</button>
     `;
     l.appendChild(d);
   });
 }
+
 function del(i){
-  if(!confirm("削除しますか？"))return;
+  if(!confirm("削除しますか？")) return;
   questions.splice(i,1);
-  localStorage.setItem("questions",JSON.stringify(questions));
+  localStorage.setItem("questions", JSON.stringify(questions));
   render();
 }
+
 render();
 </script>
 
