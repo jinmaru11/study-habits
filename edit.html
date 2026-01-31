@@ -89,6 +89,16 @@ button{
   color:#777;
 }
 
+/* ===== 検索 ===== */
+.search{
+  margin-bottom:12px;
+}
+.search-info{
+  font-size:12px;
+  color:#666;
+  margin-bottom:8px;
+}
+
 /* ===== ページング ===== */
 .pager{
   display:flex;
@@ -114,6 +124,14 @@ button{
 <header>問題を編集</header>
 
 <main>
+
+<div class="search">
+  <input
+    id="search"
+    placeholder="問題文で検索"
+    oninput="onSearch()">
+  <div class="search-info" id="searchInfo"></div>
+</div>
 
 <div id="list"></div>
 
@@ -150,20 +168,36 @@ const PAGE_SIZE = 30;
 
 /* ===== 状態 ===== */
 let questions = JSON.parse(localStorage.getItem("questions")) || [];
+let filtered = [...questions];
 let editingIndex = null;
 let currentPage = 0;
 
-/* ===== 一覧描画（30件だけ） ===== */
+/* ===== 検索 ===== */
+function onSearch(){
+  const word = document.getElementById("search").value.trim();
+  currentPage = 0;
+
+  if(!word){
+    filtered = [...questions];
+  }else{
+    filtered = questions.filter(q =>
+      q.question.includes(word)
+    );
+  }
+  renderList();
+}
+
+/* ===== 一覧描画 ===== */
 function renderList(){
   const list = document.getElementById("list");
   list.innerHTML = "";
 
   const start = currentPage * PAGE_SIZE;
   const end = start + PAGE_SIZE;
-  const pageItems = questions.slice(start, end);
+  const pageItems = filtered.slice(start, end);
 
-  pageItems.forEach((q, i)=>{
-    const realIndex = start + i;
+  pageItems.forEach(q=>{
+    const realIndex = questions.indexOf(q);
     const d = document.createElement("div");
     d.className="list-item";
     d.innerHTML=`
@@ -173,9 +207,14 @@ function renderList(){
     list.appendChild(d);
   });
 
-  const totalPages = Math.max(1, Math.ceil(questions.length / PAGE_SIZE));
+  const totalPages =
+    Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
   document.getElementById("pageInfo").textContent =
     `${currentPage + 1} / ${totalPages}`;
+
+  document.getElementById("searchInfo").textContent =
+    `全 ${filtered.length} 問`;
 }
 
 /* ===== ページ操作 ===== */
@@ -186,7 +225,7 @@ function prevPage(){
   }
 }
 function nextPage(){
-  if((currentPage + 1) * PAGE_SIZE < questions.length){
+  if((currentPage + 1) * PAGE_SIZE < filtered.length){
     currentPage++;
     renderList();
   }
@@ -242,8 +281,8 @@ function save(){
     explain:document.getElementById("ex").value
   };
   localStorage.setItem("questions",JSON.stringify(questions));
+  onSearch();
   alert("保存しました");
-  renderList();
 }
 
 /* ===== 削除 ===== */
@@ -253,11 +292,7 @@ function remove(){
   localStorage.setItem("questions",JSON.stringify(questions));
   document.getElementById("editor").style.display="none";
   editingIndex=null;
-
-  if(currentPage * PAGE_SIZE >= questions.length && currentPage > 0){
-    currentPage--;
-  }
-  renderList();
+  onSearch();
 }
 
 /* ===== 初期表示 ===== */
