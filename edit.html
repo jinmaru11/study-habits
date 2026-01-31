@@ -115,7 +115,7 @@ button{
   <textarea id="ex"></textarea>
 
   <button class="save" onclick="save()">保存</button>
-  <button class="delete" onclick="remove()">削除</button>
+  <button class="delete" onclick="removeQuestion()">削除</button>
 </div>
 
 </main>
@@ -124,9 +124,17 @@ button{
 let questions = JSON.parse(localStorage.getItem("questions")) || [];
 let editingIndex = null;
 
+/* ===== 一覧表示 ===== */
 function renderList(){
   const list = document.getElementById("list");
   list.innerHTML = "";
+
+  if(questions.length === 0){
+    list.innerHTML =
+      "<div class='card'>問題がありません</div>";
+    return;
+  }
+
   questions.forEach((q,i)=>{
     const d = document.createElement("div");
     d.className="list-item";
@@ -138,16 +146,18 @@ function renderList(){
   });
 }
 
+/* ===== 編集開始 ===== */
 function edit(i){
   editingIndex=i;
   const q=questions[i];
+
   document.getElementById("editor").style.display="block";
   document.getElementById("q").value=q.question;
   document.getElementById("ex").value=q.explain||"";
 
   const c=document.getElementById("choices");
-  c.innerHTML="";
   const a=document.getElementById("answer");
+  c.innerHTML="";
   a.innerHTML="";
 
   q.choices.forEach((x,idx)=>{
@@ -164,6 +174,7 @@ function edit(i){
   });
 }
 
+/* ===== 選択肢同期 ===== */
 function sync(){
   const inputs=[...document.querySelectorAll("#choices input")];
   const sel=document.getElementById("answer");
@@ -176,26 +187,35 @@ function sync(){
   });
 }
 
+/* ===== 保存 ===== */
 function save(){
   if(editingIndex===null)return;
+
   const inputs=[...document.querySelectorAll("#choices input")];
-  const updated={
+  questions[editingIndex]={
     question:document.getElementById("q").value,
     choices:inputs.map(i=>i.value),
     answer:inputs[document.getElementById("answer").value].value,
     explain:document.getElementById("ex").value
   };
-  questions[editingIndex]=updated;
+
   localStorage.setItem("questions",JSON.stringify(questions));
   alert("保存しました");
   renderList();
 }
 
-function remove(){
-  if(!confirm("この問題を削除しますか？"))return;
+/* ===== 削除（確認付き） ===== */
+function removeQuestion(){
+  if(!confirm("本当にこの問題を削除しますか？\nこの操作は元に戻せません。")){
+    return;
+  }
+
   questions.splice(editingIndex,1);
   localStorage.setItem("questions",JSON.stringify(questions));
+
   document.getElementById("editor").style.display="none";
+  editingIndex=null;
+
   renderList();
 }
 
