@@ -145,7 +145,7 @@ main{
 
 <script>
 /* =====================================================
-   成長スコア初期化（必ず1から）
+   成長スコア初期化（必ず1）
 ===================================================== */
 (function initGrowthScore(){
   if(localStorage.getItem("growthScore") === null){
@@ -154,25 +154,40 @@ main{
 })();
 
 /* =====================================================
-   成長スコア：未学習リセット判定
-   ※ 0には絶対ならず、必ず「1」に戻る
+   正確な複利成長（1日でも空いたら即リセット）
 ===================================================== */
-(function normalizeGrowth(){
-  const last = localStorage.getItem("lastStudyDate");
-  if(!last) return;
+function applyDailyCompound(){
+  const today = new Date().toISOString().slice(0,10);
+  const lastStudy = localStorage.getItem("lastStudyDate");
+  const lastCompound = localStorage.getItem("lastCompoundDate");
 
-  const today = new Date();
-  const lastDate = new Date(last);
+  if(!lastStudy) return;
+
   const diff = Math.floor(
-    (today - lastDate) / (1000 * 60 * 60 * 24)
+    (new Date(today) - new Date(lastStudy)) / (1000*60*60*24)
   );
 
-  if(diff > 1){
+  // 1日でも空いたら即リセット
+  if(diff >= 1){
     localStorage.setItem("growthScore", 1);
+    localStorage.removeItem("lastCompoundDate");
+    return;
   }
-})();
 
-/* ===== 成長スコア表示（保険付き） ===== */
+  // 今日すでに計算済みなら何もしない
+  if(lastCompound === today) return;
+
+  let score = parseFloat(localStorage.getItem("growthScore")) || 1;
+  score = score * 1.0101;
+
+  localStorage.setItem("growthScore", score);
+  localStorage.setItem("lastCompoundDate", today);
+}
+
+// 起動時に実行
+applyDailyCompound();
+
+/* ===== 成長スコア表示 ===== */
 document.getElementById("score").textContent =
   (parseFloat(localStorage.getItem("growthScore")) || 1).toFixed(2);
 
@@ -180,12 +195,11 @@ document.getElementById("score").textContent =
 function calcStreak(){
   const h = JSON.parse(localStorage.getItem("studyHistory")) || {};
   let d = new Date(), s = 0;
-
   while(true){
     const k = d.toISOString().slice(0,10);
     if(h[k]){
       s++;
-      d.setDate(d.getDate() - 1);
+      d.setDate(d.getDate()-1);
     }else{
       break;
     }
