@@ -43,13 +43,14 @@ input,textarea{
 
 .btn{
   margin-top:12px;
-  padding:12px;
+  padding:14px;
   border:none;
-  border-radius:10px;
-  font-size:15px;
+  border-radius:12px;
+  font-size:16px;
+  width:100%;
 }
 .primary{background:#b00020;color:white;}
-.danger{background:#ccc;}
+.secondary{background:#eee;color:#333;}
 
 .q-item{
   padding:10px 0;
@@ -88,6 +89,19 @@ input,textarea{
 <div id="list"></div>
 </section>
 
+<!-- ★ ナビゲーションボタン -->
+<section class="card">
+  <button class="btn primary"
+    onclick="location.href='quiz.html'">
+    問題を解く
+  </button>
+
+  <button class="btn secondary"
+    onclick="location.href='index.html'">
+    ホームに戻る
+  </button>
+</section>
+
 </main>
 
 <script>
@@ -106,7 +120,7 @@ function save(){
   questions.push({
     question: q,
     choices: cs,
-    answer: cs[0], // ★ 一番上を正解に固定
+    answer: cs[0], // 一番上が正解
     explain: document.getElementById("explain").value || ""
   });
 
@@ -122,7 +136,9 @@ function render(){
     d.className = "q-item";
     d.innerHTML = `
       <div>${q.question}</div>
-      <button class="btn danger" onclick="del(${i})">削除</button>
+      <button class="btn secondary" onclick="del(${i})">
+        削除
+      </button>
     `;
     l.appendChild(d);
   });
