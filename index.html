@@ -144,6 +144,15 @@ main{
 </main>
 
 <script>
+/* =====================================================
+   成長スコア初期化（必ず1から）
+===================================================== */
+(function initGrowthScore(){
+  if(localStorage.getItem("growthScore") === null){
+    localStorage.setItem("growthScore", 1);
+  }
+})();
+
 /* ===== 成長スコア：未学習リセット判定 ===== */
 (function normalizeGrowth(){
   const today = new Date();
@@ -161,16 +170,20 @@ main{
 
 /* ===== 成長スコア表示 ===== */
 document.getElementById("score").textContent =
-  (parseFloat(localStorage.getItem("growthScore"))||1).toFixed(2);
+  (parseFloat(localStorage.getItem("growthScore")) || 1).toFixed(2);
 
 /* ===== ストリーク ===== */
 function calcStreak(){
-  const h=JSON.parse(localStorage.getItem("studyHistory"))||{};
-  let d=new Date(),s=0;
+  const h = JSON.parse(localStorage.getItem("studyHistory")) || {};
+  let d = new Date(), s = 0;
   while(true){
-    const k=d.toISOString().slice(0,10);
-    if(h[k]){ s++; d.setDate(d.getDate()-1); }
-    else break;
+    const k = d.toISOString().slice(0,10);
+    if(h[k]){
+      s++;
+      d.setDate(d.getDate()-1);
+    }else{
+      break;
+    }
   }
   return s;
 }
@@ -178,43 +191,52 @@ document.getElementById("streak").textContent =
   `🔥 ${calcStreak()} 日`;
 
 /* ===== カレンダー ===== */
-let y,m;
-const now=new Date();
-y=now.getFullYear();
-m=now.getMonth();
+let y, m;
+const now = new Date();
+y = now.getFullYear();
+m = now.getMonth();
 
 function render(){
-  const cal=document.getElementById("calendar");
-  cal.innerHTML="";
-  document.getElementById("monthTitle").textContent=`${y}年 ${m+1}月`;
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+  document.getElementById("monthTitle").textContent = `${y}年 ${m+1}月`;
 
-  const hist=JSON.parse(localStorage.getItem("studyHistory"))||{};
-  const today=new Date().toISOString().slice(0,10);
+  const hist = JSON.parse(localStorage.getItem("studyHistory")) || {};
+  const today = new Date().toISOString().slice(0,10);
 
   ["日","月","火","水","木","金","土"].forEach(d=>{
-    const e=document.createElement("div");
-    e.textContent=d;
-    e.style.fontWeight="bold";
+    const e = document.createElement("div");
+    e.textContent = d;
+    e.style.fontWeight = "bold";
     cal.appendChild(e);
   });
 
-  const fd=new Date(y,m,1).getDay();
-  const ld=new Date(y,m+1,0).getDate();
+  const fd = new Date(y, m, 1).getDay();
+  const ld = new Date(y, m+1, 0).getDate();
 
-  for(let i=0;i<fd;i++) cal.appendChild(document.createElement("div"));
+  for(let i=0;i<fd;i++){
+    cal.appendChild(document.createElement("div"));
+  }
 
-  for(let d=1;d<=ld;d++){
-    const key=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-    const c=document.createElement("div");
-    c.className="cal-cell";
-    c.textContent=hist[key]?"⭐️":d;
-    if(key===today) c.classList.add("today");
+  for(let d=1; d<=ld; d++){
+    const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const c = document.createElement("div");
+    c.className = "cal-cell";
+    c.textContent = hist[key] ? "⭐️" : d;
+    if(key === today) c.classList.add("today");
     cal.appendChild(c);
   }
 }
-function prevMonth(){ m--; if(m<0){m=11;y--;} render(); }
-function nextMonth(){ m++; if(m>11){m=0;y++;} render(); }
-function goToday(){ const t=new Date(); y=t.getFullYear(); m=t.getMonth(); render(); }
+
+function prevMonth(){ m--; if(m<0){ m=11; y--; } render(); }
+function nextMonth(){ m++; if(m>11){ m=0; y++; } render(); }
+function goToday(){
+  const t = new Date();
+  y = t.getFullYear();
+  m = t.getMonth();
+  render();
+}
+
 render();
 </script>
 
