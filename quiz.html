@@ -51,7 +51,7 @@ button.next{
   color:white;
 }
 
-/* ===== 偉人カード演出（STEP3用） ===== */
+/* ===== 偉人カード演出 ===== */
 .overlay{
   position:fixed;
   inset:0;
@@ -66,6 +66,7 @@ button.next{
   border-radius:16px;
   text-align:center;
   animation:flip 1s;
+  background:white;
 }
 .hero.common{ background:#e0e0e0; }
 .hero.rare{ background:#8ecae6; }
@@ -74,7 +75,7 @@ button.next{
   box-shadow:0 0 20px rgba(255,215,0,0.8);
 }
 .hero h2{ margin:0; }
-.hero p{ margin:6px 0 0; font-size:14px; }
+.hero p{ margin:8px 0 0; font-size:14px; }
 
 @keyframes flip{
   from{ transform:rotateY(90deg); opacity:0 }
@@ -91,7 +92,6 @@ button.next{
 </header>
 
 <main>
-
   <div class="card">
     <div id="q" style="font-size:18px;font-weight:bold;"></div>
     <div id="choices"></div>
@@ -116,20 +116,20 @@ function addGrowthScore(){
 }
 
 /* =====================================================
-   偉人データ（軽量）
+   偉人データ
 ===================================================== */
 const HEROES = {
   common: [
-    { name:"エジソン", quote:"天才とは1%のひらめきと99%の努力である" },
-    { name:"ダーウィン", quote:"生き残るのは最も強い者ではない" },
-    { name:"ナポレオン", quote:"勝利は最も忍耐強い者にもたらされる" }
+    { name:"エジソン", job:"発明家", quote:"天才とは1%のひらめきと99%の努力である" },
+    { name:"ダーウィン", job:"生物学者", quote:"生き残るのは最も強い者ではない" },
+    { name:"ナポレオン", job:"軍人", quote:"勝利は最も忍耐強い者にもたらされる" }
   ],
   rare: [
-    { name:"アインシュタイン", quote:"想像力は知識より重要だ" },
-    { name:"ガリレオ", quote:"それでも地球は動いている" }
+    { name:"アインシュタイン", job:"物理学者", quote:"想像力は知識より重要だ" },
+    { name:"ガリレオ", job:"天文学者", quote:"それでも地球は動いている" }
   ],
   legendary: [
-    { name:"レオナルド・ダ・ヴィンチ", quote:"学ぶことをやめた者は老いる" }
+    { name:"レオナルド・ダ・ヴィンチ", job:"万能の天才", quote:"学ぶことをやめた者は老いる" }
   ]
 };
 
@@ -137,14 +137,10 @@ const HEROES = {
    偉人抽選ロジック
 ===================================================== */
 function drawHero(growthScore){
-  let table = [{ type:"common", rate:75 }];
+  const table = [{ type:"common", rate:75 }];
 
-  if(growthScore >= 2){
-    table.push({ type:"rare", rate:22 });
-  }
-  if(growthScore >= 5){
-    table.push({ type:"legendary", rate:3 });
-  }
+  if(growthScore >= 2) table.push({ type:"rare", rate:22 });
+  if(growthScore >= 5) table.push({ type:"legendary", rate:3 });
 
   const total = table.reduce((s,x)=>s+x.rate,0);
   let r = Math.random() * total;
@@ -160,16 +156,20 @@ function getHeroByType(type){
   return list[Math.floor(Math.random() * list.length)];
 }
 
+/* 所有偉人を保存 */
+function saveHero(hero){
+  const owned = JSON.parse(localStorage.getItem("ownedHeroes") || "[]");
+  if(!owned.includes(hero.name)){
+    owned.push(hero.name);
+    localStorage.setItem("ownedHeroes", JSON.stringify(owned));
+  }
+}
+
 /* =====================================================
-   問題
+   問題表示
 ===================================================== */
 const raw = localStorage.getItem("questions");
 const questions = raw ? JSON.parse(raw) : [];
-
-if(questions.length === 0){
-  document.getElementById("q").textContent =
-    "⚠ 問題が登録されていません";
-}
 
 let i = 0;
 let answered = false;
@@ -204,7 +204,7 @@ function show(){
   });
 }
 
-function answer(btn, text){
+function answer(btn){
   if(answered) return;
   answered = true;
 
@@ -229,27 +229,40 @@ function next(){
 }
 
 /* =====================================================
-   終了（STEP2）
+   終了処理
 ===================================================== */
 function finish(){
   const score = addGrowthScore();
-  const rarity = drawHero(score);
-  const hero = getHeroByType(rarity);
 
-  alert(
-    "本日の学習を完了しました！\n\n" +
-    "成長スコア：" + score + "\n\n" +
-    "【" + rarity.toUpperCase() + "】\n" +
-    hero.name + "\n" +
-    "「" + hero.quote + "」"
-  );
+  const heroType = drawHero(score);
+  const hero = getHeroByType(heroType);
+  saveHero(hero);
 
-  location.href = "index.html";
+  showHeroOverlay(heroType, hero);
+}
+
+/* ===== 偉人カード表示 ===== */
+function showHeroOverlay(type, hero){
+  const overlay = document.createElement("div");
+  overlay.className = "overlay";
+  overlay.innerHTML = `
+    <div class="hero ${type}">
+      <h2>${hero.name}</h2>
+      <p>（${hero.job}）</p>
+      <p>「${hero.quote}」</p>
+      <button style="margin-top:16px" onclick="location.href='heroes.html'">
+        図鑑へ
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
 }
 
 /* 初期表示 */
 if(questions.length > 0){
   show();
+}else{
+  document.getElementById("q").textContent = "⚠ 問題が登録されていません";
 }
 </script>
 
