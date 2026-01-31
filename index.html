@@ -30,11 +30,12 @@ main{
   margin-bottom:16px;
 }
 
-/* ===== ボタン ===== */
+/* ===== アクションボタン ===== */
 .actions{
   display:flex;
   gap:12px;
   margin-bottom:16px;
+  flex-wrap:wrap;
 }
 .actions button{
   flex:1;
@@ -46,6 +47,7 @@ main{
 }
 .solve{ background:#b00020; }
 .add{ background:#555; }
+.edit{ background:#555; }
 
 /* ===== ストリーク ===== */
 .streak{
@@ -135,9 +137,11 @@ main{
   <div class="streak" id="streak">🔥 0 日</div>
 </section>
 
+<!-- ✅ アクションボタン（統一デザイン） -->
 <div class="actions">
   <button class="solve" onclick="location.href='quiz.html'">問題を解く</button>
   <button class="add" onclick="location.href='add.html'">問題を追加</button>
+  <button class="edit" onclick="location.href='edit.html'">問題を編集</button>
 </div>
 
 <section class="card">
@@ -156,12 +160,6 @@ main{
   <div style="font-weight:bold;margin-bottom:8px;">獲得した偉人カード</div>
   <div id="heroes"></div>
 </section>
-
-<!-- ✅ 問題編集ボタン（正しい位置） -->
-<button onclick="location.href='edit.html'"
-        style="width:100%;margin-top:12px;background:#eee;color:#333;border:none;padding:14px;border-radius:10px;">
-  問題を編集
-</button>
 
 </main>
 
@@ -233,7 +231,10 @@ if(heroes.length===0){
   heroes.forEach(h=>{
     const d=document.createElement("div");
     d.className=`hero ${h.rarity}`;
-    d.innerHTML=`<div class="hero-name">${h.name}</div><div class="hero-job">${h.job}</div>`;
+    d.innerHTML=`
+      <div class="hero-name">${h.name}</div>
+      <div class="hero-job">${h.job}</div>
+    `;
     box.appendChild(d);
   });
 }
