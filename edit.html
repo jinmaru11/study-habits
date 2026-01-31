@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>問題を編集｜Study Habits</title>
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#f4f4f4;
+}
+header{
+  background:#b00020;
+  color:#fff;
+  padding:16px;
+  text-align:center;
+  font-weight:600;
+}
+main{
+  max-width:600px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:#fff;
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+}
+label{
+  font-size:13px;
+  color:#555;
+}
+input, textarea, select{
+  width:100%;
+  margin-top:6px;
+  margin-bottom:12px;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
+}
+.choice-row{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.choice-row input{
+  flex:1;
+}
+button{
+  border:none;
+  border-radius:10px;
+  padding:12px;
+  font-size:15px;
+  cursor:pointer;
+}
+.save{
+  background:#b00020;
+  color:#fff;
+  width:100%;
+  margin-top:8px;
+}
+.delete{
+  background:#eee;
+  color:#333;
+  width:100%;
+  margin-top:8px;
+}
+.list-item{
+  padding:12px;
+  border-radius:10px;
+  background:#fff;
+  margin-bottom:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.list-item button{
+  background:#b00020;
+  color:#fff;
+  padding:6px 10px;
+  font-size:13px;
+}
+.small{
+  font-size:12px;
+  color:#777;
+}
+</style>
+</head>
+
+<body>
+
+<header>問題を編集</header>
+
+<main>
+
+<div id="list"></div>
+
+<div class="card" id="editor" style="display:none">
+  <div class="small">編集中の問題</div>
+
+  <label>問題文</label>
+  <textarea id="q"></textarea>
+
+  <label>選択肢（4択）</label>
+  <div id="choices"></div>
+
+  <label>正解</label>
+  <select id="answer"></select>
+
+  <label>解説（任意）</label>
+  <textarea id="ex"></textarea>
+
+  <button class="save" onclick="save()">保存</button>
+  <button class="delete" onclick="remove()">削除</button>
+</div>
+
+</main>
+
+<script>
+let questions = JSON.parse(localStorage.getItem("questions")) || [];
+let editingIndex = null;
+
+function renderList(){
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  questions.forEach((q,i)=>{
+    const d = document.createElement("div");
+    d.className="list-item";
+    d.innerHTML=`
+      <div>${q.question}</div>
+      <button onclick="edit(${i})">編集</button>
+    `;
+    list.appendChild(d);
+  });
+}
+
+function edit(i){
+  editingIndex=i;
+  const q=questions[i];
+  document.getElementById("editor").style.display="block";
+  document.getElementById("q").value=q.question;
+  document.getElementById("ex").value=q.explain||"";
+
+  const c=document.getElementById("choices");
+  c.innerHTML="";
+  const a=document.getElementById("answer");
+  a.innerHTML="";
+
+  q.choices.forEach((x,idx)=>{
+    const row=document.createElement("div");
+    row.className="choice-row";
+    row.innerHTML=`<input value="${x}" onchange="sync()">`;
+    c.appendChild(row);
+
+    const o=document.createElement("option");
+    o.value=idx;
+    o.textContent=`選択肢${idx+1}`;
+    if(x===q.answer) o.selected=true;
+    a.appendChild(o);
+  });
+}
+
+function sync(){
+  const inputs=[...document.querySelectorAll("#choices input")];
+  const sel=document.getElementById("answer");
+  sel.innerHTML="";
+  inputs.forEach((_,i)=>{
+    const o=document.createElement("option");
+    o.value=i;
+    o.textContent=`選択肢${i+1}`;
+    sel.appendChild(o);
+  });
+}
+
+function save(){
+  if(editingIndex===null)return;
+  const inputs=[...document.querySelectorAll("#choices input")];
+  const updated={
+    question:document.getElementById("q").value,
+    choices:inputs.map(i=>i.value),
+    answer:inputs[document.getElementById("answer").value].value,
+    explain:document.getElementById("ex").value
+  };
+  questions[editingIndex]=updated;
+  localStorage.setItem("questions",JSON.stringify(questions));
+  alert("保存しました");
+  renderList();
+}
+
+function remove(){
+  if(!confirm("この問題を削除しますか？"))return;
+  questions.splice(editingIndex,1);
+  localStorage.setItem("questions",JSON.stringify(questions));
+  document.getElementById("editor").style.display="none";
+  renderList();
+}
+
+renderList();
+</script>
+
+</body>
+</html>
