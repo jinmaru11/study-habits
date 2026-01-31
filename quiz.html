@@ -65,14 +65,13 @@ button.next{
   padding:24px;
   border-radius:16px;
   text-align:center;
-  background:gold;
   animation:flip 1s;
-  box-shadow:0 0 20px rgba(255,215,0,0.8);
 }
-.hero.common{ background:#e0e0e0; box-shadow:none; }
+.hero.common{ background:#e0e0e0; }
 .hero.rare{ background:#8ecae6; }
 .hero.legendary{
   background:linear-gradient(135deg,#ffd700,#fff5b7,#ffd700);
+  box-shadow:0 0 20px rgba(255,215,0,0.8);
 }
 .hero h2{ margin:0; }
 .hero p{ margin:6px 0 0; font-size:14px; }
@@ -112,128 +111,8 @@ if(questions.length===0){
 let i=0;
 let answered=false;
 
-/* ===== 選択肢シャッフル ===== */
-function shuffle(array){
-  for(let i=array.length-1;i>0;i--){
+/* ===== シャッフル ===== */
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
-    [array[i],array[j]]=[array[j],array[i]];
-  }
-}
-
-/* ===== 偉人マスタ ===== */
-const HEROES=[
-  {id:"aristotle",name:"アリストテレス",job:"哲学者",rarity:"common",quote:"習慣は第二の天性である"},
-  {id:"confucius",name:"孔子",job:"思想家",rarity:"rare",quote:"学びて時に之を習う"},
-  {id:"einstein",name:"アインシュタイン",job:"理論物理学者",rarity:"legendary",quote:"想像力は知識より重要だ"}
-];
-
-/* ===== 表示 ===== */
-function show(){
-  answered=false;
-  const q=questions[i];
-  document.getElementById("q").textContent=q.question;
-  document.getElementById("progress").textContent=`${i+1} / ${questions.length}`;
-
-  const c=document.getElementById("choices");
-  c.innerHTML="";
-
-  // ★ ここが追加ポイント
-  const shuffledChoices=[...q.choices];
-  shuffle(shuffledChoices);
-
-  shuffledChoices.forEach(x=>{
-    const b=document.createElement("button");
-    b.className="choice";
-    b.textContent=x;
-    b.onclick=()=>answer(b,x);
-    c.appendChild(b);
-  });
-}
-
-/* ===== 回答 ===== */
-function answer(btn,x){
-  if(answered)return;
-  answered=true;
-
-  document.querySelectorAll(".choice").forEach(b=>{
-    if(b.textContent===questions[i].answer)
-      b.classList.add("correct");
-    else if(b===btn)
-      b.classList.add("wrong");
-    b.disabled=true;
-  });
-}
-
-/* ===== 次へ ===== */
-function next(){
-  if(!answered) return alert("回答してください");
-  i++;
-  if(i>=questions.length) finish();
-  else show();
-}
-
-/* ===== 完了処理 ===== */
-function finish(){
-  const today=new Date().toISOString().slice(0,10);
-  const last=localStorage.getItem("lastStudyDate");
-
-  if(last!==today){
-    localStorage.setItem("lastStudyDate",today);
-
-    let s=parseFloat(localStorage.getItem("growthScore"))||1;
-    s*=1.0101;
-    localStorage.setItem("growthScore",s);
-
-    if(i===questions.length) giveHero();
-  }
-
-  alert("本日の学習を完了しました！");
-  location.href="index.html";
-}
-
-/* ===== 偉人カード付与 ===== */
-function giveHero(){
-  const owned=
-    JSON.parse(localStorage.getItem("heroCards"))||[];
-
-  const ownedIds=owned.map(c=>c.id);
-
-  let pool=HEROES.filter(h=>h.rarity==="common");
-
-  if(i===questions.length){
-    pool=[...HEROES];
-  }
-
-  const weighted=[];
-  pool.forEach(h=>{
-    const w=h.rarity==="common" && ownedIds.includes(h.id)?3:1;
-    for(let k=0;k<w;k++) weighted.push(h);
-  });
-
-  const hero=weighted[Math.floor(Math.random()*weighted.length)];
-  owned.push(hero);
-  localStorage.setItem("heroCards",JSON.stringify(owned));
-
-  if(hero.rarity==="legendary") showHero(hero);
-}
-
-/* ===== 演出 ===== */
-function showHero(hero){
-  const o=document.createElement("div");
-  o.className="overlay";
-  o.innerHTML=`
-    <div class="hero ${hero.rarity}">
-      <h2>${hero.name}</h2>
-      <p>${hero.job}</p>
-      <p style="margin-top:8px;">「${hero.quote}」</p>
-    </div>
-  `;
-  document.body.appendChild(o);
-  setTimeout(()=>o.remove(),1800);
-}
-
-show();
-</script>
-
-</body>
-</html>
+    [arr
