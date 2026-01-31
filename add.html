@@ -113,10 +113,6 @@ select{
 </main>
 
 <script>
-  alert("ADD: " + localStorage.getItem("questions"));
-let questions =
-  JSON.parse(localStorage.getItem("questions")) || [];
-
 function save(){
   const q=document.getElementById("question").value.trim();
   const cs=[...document.querySelectorAll("#choices input")]
