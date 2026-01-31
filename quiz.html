@@ -66,7 +66,6 @@ button.next{
   border-radius:16px;
   text-align:center;
   animation:flip 1s;
-  background:white;
 }
 .hero.common{ background:#e0e0e0; }
 .hero.rare{ background:#8ecae6; }
@@ -109,42 +108,38 @@ function getGrowthScore(){
 }
 
 function addGrowthScore(){
-  const current = getGrowthScore();
-  const next = Math.round((current + 0.1) * 10) / 10;
+  const next = Math.round((getGrowthScore() + 0.1) * 10) / 10;
   localStorage.setItem("growthScore", next);
   return next;
 }
 
 /* =====================================================
-   偉人データ
+   偉人データ（ID必須）
 ===================================================== */
 const HEROES = {
   common: [
-    { name:"エジソン", job:"発明家", quote:"天才とは1%のひらめきと99%の努力である" },
-    { name:"ダーウィン", job:"生物学者", quote:"生き残るのは最も強い者ではない" },
-    { name:"ナポレオン", job:"軍人", quote:"勝利は最も忍耐強い者にもたらされる" }
+    { id:"c1", name:"エジソン", job:"発明家", quote:"天才とは1%のひらめきと99%の努力である" },
+    { id:"c2", name:"ダーウィン", job:"生物学者", quote:"生き残るのは最も強い者ではない" },
+    { id:"c3", name:"ナポレオン", job:"軍人", quote:"勝利は最も忍耐強い者にもたらされる" }
   ],
   rare: [
-    { name:"アインシュタイン", job:"物理学者", quote:"想像力は知識より重要だ" },
-    { name:"ガリレオ", job:"天文学者", quote:"それでも地球は動いている" }
+    { id:"r1", name:"アインシュタイン", job:"物理学者", quote:"想像力は知識より重要だ" },
+    { id:"r2", name:"ガリレオ", job:"天文学者", quote:"それでも地球は動いている" }
   ],
   legendary: [
-    { name:"レオナルド・ダ・ヴィンチ", job:"万能の天才", quote:"学ぶことをやめた者は老いる" }
+    { id:"l1", name:"レオナルド・ダ・ヴィンチ", job:"万能の天才", quote:"学ぶことをやめた者は老いる" }
   ]
 };
 
 /* =====================================================
    偉人抽選ロジック
 ===================================================== */
-function drawHero(growthScore){
+function drawHeroType(score){
   const table = [{ type:"common", rate:75 }];
+  if(score >= 2) table.push({ type:"rare", rate:22 });
+  if(score >= 5) table.push({ type:"legendary", rate:3 });
 
-  if(growthScore >= 2) table.push({ type:"rare", rate:22 });
-  if(growthScore >= 5) table.push({ type:"legendary", rate:3 });
-
-  const total = table.reduce((s,x)=>s+x.rate,0);
-  let r = Math.random() * total;
-
+  let r = Math.random() * table.reduce((s,x)=>s+x.rate,0);
   for(const t of table){
     if(r < t.rate) return t.type;
     r -= t.rate;
@@ -156,11 +151,13 @@ function getHeroByType(type){
   return list[Math.floor(Math.random() * list.length)];
 }
 
-/* 所有偉人を保存 */
+/* =====================================================
+   ownedHeroes 保存（IDのみ）
+===================================================== */
 function saveHero(hero){
   const owned = JSON.parse(localStorage.getItem("ownedHeroes") || "[]");
-  if(!owned.includes(hero.name)){
-    owned.push(hero.name);
+  if(!owned.includes(hero.id)){
+    owned.push(hero.id);
     localStorage.setItem("ownedHeroes", JSON.stringify(owned));
   }
 }
@@ -192,14 +189,12 @@ function show(){
   const area = document.getElementById("choices");
   area.innerHTML = "";
 
-  const shuffled = [...q.choices];
-  shuffle(shuffled);
-
-  shuffled.forEach(text=>{
+  shuffle(q.choices);
+  q.choices.forEach(text=>{
     const b = document.createElement("button");
     b.className = "choice";
     b.textContent = text;
-    b.onclick = ()=>answer(b, text);
+    b.onclick = ()=>answer(b);
     area.appendChild(b);
   });
 }
@@ -221,11 +216,7 @@ function answer(btn){
 function next(){
   if(!answered) return alert("回答してください");
   i++;
-  if(i >= questions.length){
-    finish();
-  }else{
-    show();
-  }
+  i >= questions.length ? finish() : show();
 }
 
 /* =====================================================
@@ -233,12 +224,11 @@ function next(){
 ===================================================== */
 function finish(){
   const score = addGrowthScore();
+  const type = drawHeroType(score);
+  const hero = getHeroByType(type);
 
-  const heroType = drawHero(score);
-  const hero = getHeroByType(heroType);
   saveHero(hero);
-
-  showHeroOverlay(heroType, hero);
+  showHeroOverlay(type, hero);
 }
 
 /* ===== 偉人カード表示 ===== */
@@ -259,11 +249,8 @@ function showHeroOverlay(type, hero){
 }
 
 /* 初期表示 */
-if(questions.length > 0){
-  show();
-}else{
+questions.length ? show() :
   document.getElementById("q").textContent = "⚠ 問題が登録されていません";
-}
 </script>
 
 </body>
