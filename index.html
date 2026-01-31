@@ -137,7 +137,6 @@ main{
   <div class="streak" id="streak">🔥 0 日</div>
 </section>
 
-<!-- ✅ アクションボタン（統一デザイン） -->
 <div class="actions">
   <button class="solve" onclick="location.href='quiz.html'">問題を解く</button>
   <button class="add" onclick="location.href='add.html'">問題を追加</button>
@@ -164,11 +163,26 @@ main{
 </main>
 
 <script>
-/* 成長スコア */
+/* ===== 成長スコア：未学習リセット判定 ===== */
+(function normalizeGrowth(){
+  const today = new Date();
+  const last = localStorage.getItem("lastStudyDate");
+  if(!last) return;
+
+  const lastDate = new Date(last);
+  const diff =
+    Math.floor((today - lastDate) / (1000*60*60*24));
+
+  if(diff > 1){
+    localStorage.setItem("growthScore", 1);
+  }
+})();
+
+/* ===== 成長スコア表示 ===== */
 document.getElementById("score").textContent =
   (parseFloat(localStorage.getItem("growthScore"))||1).toFixed(2);
 
-/* ストリーク */
+/* ===== ストリーク ===== */
 function calcStreak(){
   const h=JSON.parse(localStorage.getItem("studyHistory"))||{};
   let d=new Date(),s=0;
@@ -182,7 +196,7 @@ function calcStreak(){
 document.getElementById("streak").textContent =
   `🔥 ${calcStreak()} 日`;
 
-/* カレンダー */
+/* ===== カレンダー ===== */
 let y,m;
 const now=new Date();
 y=now.getFullYear();
@@ -222,7 +236,7 @@ function nextMonth(){ m++; if(m>11){m=0;y++;} render(); }
 function goToday(){ const t=new Date(); y=t.getFullYear(); m=t.getMonth(); render(); }
 render();
 
-/* 偉人カード */
+/* ===== 偉人カード ===== */
 const heroes=JSON.parse(localStorage.getItem("heroCards"))||[];
 const box=document.getElementById("heroes");
 if(heroes.length===0){
