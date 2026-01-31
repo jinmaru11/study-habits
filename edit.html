@@ -46,9 +46,7 @@ input, textarea, select{
   display:flex;
   gap:8px;
 }
-.choice-row input{
-  flex:1;
-}
+.choice-row input{ flex:1; }
 button{
   border:none;
   border-radius:10px;
@@ -67,6 +65,8 @@ button{
   width:100%;
   margin-top:8px;
 }
+
+/* 一覧 */
 .list-item{
   padding:12px;
   border-radius:10px;
@@ -76,15 +76,29 @@ button{
   justify-content:space-between;
   align-items:center;
 }
-.list-item button{
+.list-actions{
+  display:flex;
+  gap:6px;
+}
+.edit-btn{
   background:#b00020;
   color:#fff;
   padding:6px 10px;
   font-size:13px;
 }
+.delete-btn{
+  background:#555;
+  color:#fff;
+  padding:6px 10px;
+  font-size:13px;
+}
+
 .small{
   font-size:12px;
   color:#777;
+}
+.controls{
+  margin-bottom:12px;
 }
 .pager{
   display:flex;
@@ -96,9 +110,6 @@ button{
   background:#eee;
   padding:8px 12px;
 }
-.search{
-  margin-bottom:12px;
-}
 </style>
 </head>
 
@@ -108,8 +119,10 @@ button{
 
 <main>
 
-<!-- 🔍 並び替え -->
-<div class="search">
+<!-- 🔍 検索 -->
+<div class="controls">
+  <input id="search" placeholder="問題文を検索" oninput="onSearch()">
+
   <select id="sort" onchange="onSort()">
     <option value="old">追加順（古い → 新しい）</option>
     <option value="new">追加順（新しい → 古い）</option>
@@ -151,20 +164,31 @@ button{
 const PAGE_SIZE = 30;
 
 let questions = JSON.parse(localStorage.getItem("questions")) || [];
-let view = [...questions];
+let filtered = [...questions];
 let page = 0;
 let editingIndex = null;
 
-/* ===== 並び替え ===== */
-function onSort(){
-  const t = document.getElementById("sort").value;
-
-  if(t==="old") view = [...questions];
-  if(t==="new") view = [...questions].reverse();
-  if(t==="az") view = [...questions].sort((a,b)=>a.question.localeCompare(b.question,"ja"));
-  if(t==="za") view = [...questions].sort((a,b)=>b.question.localeCompare(a.question,"ja"));
-
+/* ===== 検索 ===== */
+function onSearch(){
+  const word = document.getElementById("search").value.trim().toLowerCase();
+  filtered = questions.filter(q =>
+    q.question.toLowerCase().includes(word)
+  );
   page = 0;
+  onSort(false);
+}
+
+/* ===== 並び替え ===== */
+function onSort(resetPage=true){
+  const t = document.getElementById("sort").value;
+  let base = [...filtered];
+
+  if(t==="new") base.reverse();
+  if(t==="az") base.sort((a,b)=>a.question.localeCompare(b.question,"ja"));
+  if(t==="za") base.sort((a,b)=>b.question.localeCompare(a.question,"ja"));
+
+  filtered = base;
+  if(resetPage) page = 0;
   render();
 }
 
@@ -174,7 +198,7 @@ function render(){
   list.innerHTML = "";
 
   const start = page * PAGE_SIZE;
-  const slice = view.slice(start, start + PAGE_SIZE);
+  const slice = filtered.slice(start, start + PAGE_SIZE);
 
   slice.forEach(q=>{
     const i = questions.indexOf(q);
@@ -182,10 +206,21 @@ function render(){
     d.className="list-item";
     d.innerHTML=`
       <div>${q.question}</div>
-      <button onclick="edit(${i})">編集</button>
+      <div class="list-actions">
+        <button class="edit-btn" onclick="edit(${i})">編集</button>
+        <button class="delete-btn" onclick="deleteFromList(${i})">削除</button>
+      </div>
     `;
     list.appendChild(d);
   });
+}
+
+/* ===== 一覧から削除 ===== */
+function deleteFromList(i){
+  if(!confirm("この問題を削除しますか？")) return;
+  questions.splice(i,1);
+  localStorage.setItem("questions",JSON.stringify(questions));
+  onSearch();
 }
 
 /* ===== ページ ===== */
@@ -193,7 +228,7 @@ function prev(){
   if(page>0){ page--; render(); }
 }
 function next(){
-  if((page+1)*PAGE_SIZE < view.length){
+  if((page+1)*PAGE_SIZE < filtered.length){
     page++; render();
   }
 }
@@ -219,7 +254,6 @@ function edit(i){
 /* ===== 保存 ===== */
 function save(){
   if(editingIndex===null)return;
-
   const inputs=[...document.querySelectorAll("#choices input")];
   questions[editingIndex]={
     question:document.getElementById("q").value,
@@ -229,20 +263,20 @@ function save(){
   };
   localStorage.setItem("questions",JSON.stringify(questions));
   alert("保存しました");
-  onSort();
+  onSearch();
 }
 
-/* ===== 削除 ===== */
+/* ===== 編集画面から削除 ===== */
 function removeQ(){
   if(!confirm("この問題を削除しますか？"))return;
   questions.splice(editingIndex,1);
   localStorage.setItem("questions",JSON.stringify(questions));
   document.getElementById("editor").style.display="none";
-  onSort();
+  onSearch();
 }
 
 /* 初期表示 */
-onSort();
+onSearch();
 </script>
 
 </body>
