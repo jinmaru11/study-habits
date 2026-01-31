@@ -51,7 +51,7 @@ button.next{
   color:white;
 }
 
-/* ===== 偉人カード演出 ===== */
+/* ===== 偉人カード演出（後続STEP用） ===== */
 .overlay{
   position:fixed;
   inset:0;
@@ -101,6 +101,18 @@ button.next{
 </main>
 
 <script>
+/* ===== 成長スコア ===== */
+function getGrowthScore(){
+  return Number(localStorage.getItem("growthScore") || 0);
+}
+
+function addGrowthScore(){
+  const current = getGrowthScore();
+  const next = Math.round((current + 0.1) * 10) / 10; // 小数誤差対策
+  localStorage.setItem("growthScore", next);
+  return next;
+}
+
 /* ===== 問題 ===== */
 const raw = localStorage.getItem("questions");
 const questions = raw ? JSON.parse(raw) : [];
@@ -174,7 +186,13 @@ function next(){
 
 /* ===== 終了 ===== */
 function finish(){
-  alert("本日の学習を完了しました！");
+  const score = addGrowthScore();
+
+  alert(
+    "本日の学習を完了しました！\n" +
+    "成長スコア：" + score
+  );
+
   location.href = "index.html";
 }
 
