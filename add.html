@@ -29,26 +29,18 @@ main{
   border-radius:12px;
   margin-bottom:16px;
 }
-h2{
-  margin-top:0;
-  font-size:18px;
-}
+h2{margin-top:0;font-size:18px;}
 
-/* ===== 入力 ===== */
-input, textarea{
+input,textarea{
   width:100%;
-  box-sizing:border-box;
   padding:12px;
   margin-top:8px;
   border-radius:10px;
   border:1px solid #ccc;
   font-size:15px;
-}
-textarea{
-  resize:vertical;
+  box-sizing:border-box;
 }
 
-/* ===== ボタン ===== */
 .btn{
   margin-top:12px;
   padding:12px;
@@ -56,41 +48,22 @@ textarea{
   border-radius:10px;
   font-size:15px;
 }
-.primary{
-  background:#b00020;
-  color:white;
-}
-.sub{
-  background:#eee;
-}
-.danger{
-  background:#ccc;
-}
-.inline{
-  display:inline-block;
-  margin-left:8px;
-}
+.primary{background:#b00020;color:white;}
+.sub{background:#eee;}
+.danger{background:#ccc;}
 
-/* ===== 不正解候補 ===== */
 .choice-row{
   display:flex;
   gap:8px;
   margin-top:8px;
 }
-.choice-row input{
-  flex:1;
-}
-.choice-row button{
-  padding:0 10px;
-}
+.choice-row input{flex:1;}
 
-/* ===== 既存問題 ===== */
 .q-item{
   padding:10px 0;
   border-bottom:1px solid #eee;
   display:flex;
   justify-content:space-between;
-  align-items:center;
 }
 </style>
 </head>
@@ -101,26 +74,22 @@ textarea{
 
 <main>
 
-<!-- ===== 新規追加 ===== -->
 <section class="card">
-  <h2>新しい問題</h2>
+<h2>新しい問題（4択）</h2>
 
-  <input id="question" placeholder="問題文">
-  <input id="answer" placeholder="正解">
+<input id="question" placeholder="問題文">
+<input id="answer" placeholder="正解" onblur="autoGenerateWrongs()">
 
-  <div id="wrongs"></div>
+<div id="wrongs"></div>
 
-  <button class="btn sub" onclick="addWrong()">不正解を追加</button>
+<textarea id="explain" placeholder="解説（任意）"></textarea>
 
-  <textarea id="explain" placeholder="解説（任意）"></textarea>
-
-  <button class="btn primary" onclick="save()">保存</button>
+<button class="btn primary" onclick="save()">保存</button>
 </section>
 
-<!-- ===== 既存問題 ===== -->
 <section class="card">
-  <h2>既存問題</h2>
-  <div id="list"></div>
+<h2>既存問題</h2>
+<div id="list"></div>
 </section>
 
 </main>
@@ -129,25 +98,41 @@ textarea{
 let questions =
   JSON.parse(localStorage.getItem("questions")) || [];
 
-/* ===== 不正解候補 ===== */
-function addWrong(val=""){
-  const d=document.createElement("div");
-  d.className="choice-row";
-  d.innerHTML=`
-    <input placeholder="不正解" value="${val}">
-    <button class="btn danger" onclick="this.parentElement.remove()">削除</button>
-  `;
-  document.getElementById("wrongs").appendChild(d);
+/* ===== 不正解自動生成 ===== */
+function autoGenerateWrongs(){
+  const a=document.getElementById("answer").value.trim();
+  if(!a) return;
+
+  const base=[
+    a+"ではない",
+    a+"以外",
+    a+"の一部"
+  ];
+
+  const w=document.getElementById("wrongs");
+  w.innerHTML="";
+
+  base.forEach(x=>{
+    const d=document.createElement("div");
+    d.className="choice-row";
+    d.innerHTML=`
+      <input value="${x}">
+      <button class="btn danger" onclick="this.parentElement.remove()">削除</button>
+    `;
+    w.appendChild(d);
+  });
 }
 
 /* ===== 保存 ===== */
 function save(){
   const q=document.getElementById("question").value.trim();
   const a=document.getElementById("answer").value.trim();
-  if(!q||!a) return alert("問題文と正解は必須です");
-
   const wrongs=[...document.querySelectorAll("#wrongs input")]
-    .map(i=>i.value).filter(v=>v);
+    .map(i=>i.value.trim()).filter(v=>v);
+
+  if(!q||!a) return alert("問題文と正解は必須です");
+  if(wrongs.length!==3)
+    return alert("不正解は3つ必要です（4択固定）");
 
   const choices=[a,...wrongs].sort(()=>Math.random()-0.5);
 
@@ -155,14 +140,14 @@ function save(){
     question:q,
     answer:a,
     choices:choices,
-    explain:document.getElementById("explain").value || ""
+    explain:document.getElementById("explain").value||""
   });
 
   localStorage.setItem("questions",JSON.stringify(questions));
   location.reload();
 }
 
-/* ===== 既存問題表示 ===== */
+/* ===== 既存問題 ===== */
 function render(){
   const l=document.getElementById("list");
   l.innerHTML="";
@@ -171,7 +156,7 @@ function render(){
     d.className="q-item";
     d.innerHTML=`
       <div>${q.question}</div>
-      <button class="btn danger inline" onclick="del(${i})">削除</button>
+      <button class="btn danger" onclick="del(${i})">削除</button>
     `;
     l.appendChild(d);
   });
