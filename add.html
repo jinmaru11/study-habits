@@ -41,6 +41,20 @@ input,textarea{
   box-sizing:border-box;
 }
 
+.choice{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+.choice input{flex:1;}
+
+select{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  border-radius:10px;
+}
+
 .btn{
   margin-top:12px;
   padding:12px;
@@ -49,15 +63,7 @@ input,textarea{
   font-size:15px;
 }
 .primary{background:#b00020;color:white;}
-.sub{background:#eee;}
 .danger{background:#ccc;}
-
-.choice-row{
-  display:flex;
-  gap:8px;
-  margin-top:8px;
-}
-.choice-row input{flex:1;}
 
 .q-item{
   padding:10px 0;
@@ -78,9 +84,21 @@ input,textarea{
 <h2>新しい問題（4択）</h2>
 
 <input id="question" placeholder="問題文">
-<input id="answer" placeholder="正解" onblur="autoGenerateWrongs()">
 
-<div id="wrongs"></div>
+<div id="choices">
+  <input placeholder="選択肢①">
+  <input placeholder="選択肢②">
+  <input placeholder="選択肢③">
+  <input placeholder="選択肢④">
+</div>
+
+<select id="answer">
+  <option value="">正解を選択</option>
+  <option value="0">選択肢①</option>
+  <option value="1">選択肢②</option>
+  <option value="2">選択肢③</option>
+  <option value="3">選択肢④</option>
+</select>
 
 <textarea id="explain" placeholder="解説（任意）"></textarea>
 
@@ -98,48 +116,20 @@ input,textarea{
 let questions =
   JSON.parse(localStorage.getItem("questions")) || [];
 
-/* ===== 不正解自動生成 ===== */
-function autoGenerateWrongs(){
-  const a=document.getElementById("answer").value.trim();
-  if(!a) return;
-
-  const base=[
-    a+"ではない",
-    a+"以外",
-    a+"の一部"
-  ];
-
-  const w=document.getElementById("wrongs");
-  w.innerHTML="";
-
-  base.forEach(x=>{
-    const d=document.createElement("div");
-    d.className="choice-row";
-    d.innerHTML=`
-      <input value="${x}">
-      <button class="btn danger" onclick="this.parentElement.remove()">削除</button>
-    `;
-    w.appendChild(d);
-  });
-}
-
-/* ===== 保存 ===== */
 function save(){
   const q=document.getElementById("question").value.trim();
-  const a=document.getElementById("answer").value.trim();
-  const wrongs=[...document.querySelectorAll("#wrongs input")]
-    .map(i=>i.value.trim()).filter(v=>v);
+  const cs=[...document.querySelectorAll("#choices input")]
+    .map(i=>i.value.trim());
+  const ai=document.getElementById("answer").value;
 
-  if(!q||!a) return alert("問題文と正解は必須です");
-  if(wrongs.length!==3)
-    return alert("不正解は3つ必要です（4択固定）");
-
-  const choices=[a,...wrongs].sort(()=>Math.random()-0.5);
+  if(!q) return alert("問題文を入力してください");
+  if(cs.some(c=>!c)) return alert("選択肢は4つすべて入力してください");
+  if(ai==="") return alert("正解を選択してください");
 
   questions.push({
     question:q,
-    answer:a,
-    choices:choices,
+    choices:cs,
+    answer:cs[ai],
     explain:document.getElementById("explain").value||""
   });
 
@@ -147,7 +137,6 @@ function save(){
   location.reload();
 }
 
-/* ===== 既存問題 ===== */
 function render(){
   const l=document.getElementById("list");
   l.innerHTML="";
