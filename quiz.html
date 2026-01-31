@@ -50,58 +50,6 @@ button.next{
   background:#b00020;
   color:white;
 }
-
-/* ===== 偉人カード演出 ===== */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.6);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-.hero{
-  padding:24px;
-  border-radius:16px;
-  text-align:center;
-  animation:flip 1s;
-  background:white;
-}
-.hero.common{ background:#e0e0e0; }
-.hero.rare{ background:#8ecae6; }
-.hero.legendary{
-  background:linear-gradient(135deg,#ffd700,#fff5b7,#ffd700);
-  box-shadow:0 0 20px rgba(255,215,0,0.8);
-}
-.hero h2{ margin:0; }
-.hero p{ margin:8px 0 0; font-size:14px; }
-
-@keyframes flip{
-  from{ transform:rotateY(90deg); opacity:0 }
-  to{ transform:rotateY(0); opacity:1 }
-}
-
-/* ===== Legendary 専用抽選演出 ===== */
-.card-back{
-  width:260px;
-  height:360px;
-  border-radius:18px;
-  background:linear-gradient(135deg,#ffd700,#fff1a8,#ffd700);
-  box-shadow:0 0 30px rgba(255,215,0,.9);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:28px;
-  font-weight:bold;
-  animation:spin 1.2s ease-in-out;
-}
-
-@keyframes spin{
-  0%{ transform:rotateY(0deg); }
-  50%{ transform:rotateY(180deg); }
-  100%{ transform:rotateY(360deg); }
-}
 </style>
 </head>
 
@@ -123,87 +71,66 @@ button.next{
 
 <script>
 /* =====================================================
-   成長スコア
+   成長スコア取得（初期値1保証）
 ===================================================== */
 function getGrowthScore(){
-  return Number(localStorage.getItem("growthScore") || 0);
-}
-function addGrowthScore(){
-  const next = Math.round((getGrowthScore() + 0.1) * 10) / 10;
-  localStorage.setItem("growthScore", next);
-  return next;
+  return Number(localStorage.getItem("growthScore") || 1);
 }
 
 /* =====================================================
-   偉人データ
+   学習記録 + 複利（1日1回）
 ===================================================== */
-const HEROES = {
-  common: [
-    { id:"c1", name:"エジソン", job:"発明家", quote:"天才とは1%のひらめきと99%の努力である" },
-    { id:"c2", name:"ダーウィン", job:"生物学者", quote:"生き残るのは最も強い者ではない" },
-    { id:"c3", name:"ナポレオン", job:"軍人", quote:"勝利は最も忍耐強い者にもたらされる" }
-  ],
-  rare: [
-    { id:"r1", name:"アインシュタイン", job:"物理学者", quote:"想像力は知識より重要だ" },
-    { id:"r2", name:"ガリレオ", job:"天文学者", quote:"それでも地球は動いている" }
-  ],
-  legendary: [
-    { id:"l1", name:"レオナルド・ダ・ヴィンチ", job:"万能の天才", quote:"学ぶことをやめた者は老いる" }
-  ]
-};
+function recordStudy(){
+  const today = new Date().toISOString().slice(0,10);
 
-/* =====================================================
-   抽選ロジック
-===================================================== */
-function drawHeroType(score){
-  const table = [{ type:"common", rate:75 }];
-  if(score >= 2) table.push({ type:"rare", rate:22 });
-  if(score >= 5) table.push({ type:"legendary", rate:3 });
+  // 学習履歴
+  const history = JSON.parse(localStorage.getItem("studyHistory")) || {};
+  history[today] = true;
+  localStorage.setItem("studyHistory", JSON.stringify(history));
 
-  let r = Math.random() * table.reduce((s,x)=>s+x.rate,0);
-  for(const t of table){
-    if(r < t.rate) return t.type;
-    r -= t.rate;
+  // 最終学習日
+  localStorage.setItem("lastStudyDate", today);
+
+  // 複利は1日1回のみ
+  const lastCompound = localStorage.getItem("lastCompoundDate");
+  if(lastCompound !== today){
+    let score = getGrowthScore();
+    score = score * 1.0101; // 複利
+    localStorage.setItem("growthScore", score);
+    localStorage.setItem("lastCompoundDate", today);
   }
 }
-function getHeroByType(type){
-  const list = HEROES[type];
-  return list[Math.floor(Math.random() * list.length)];
-}
 
 /* =====================================================
-   ownedHeroes 保存（IDのみ）
+   問題データ
 ===================================================== */
-function saveHero(hero){
-  const owned = JSON.parse(localStorage.getItem("ownedHeroes") || "[]");
-  if(!owned.includes(hero.id)){
-    owned.push(hero.id);
-    localStorage.setItem("ownedHeroes", JSON.stringify(owned));
-  }
-}
+const raw = localStorage.getItem("questions");
+const questions = raw ? JSON.parse(raw) : [];
+
+let i = 0;
+let answered = false;
 
 /* =====================================================
    問題表示
 ===================================================== */
-const raw = localStorage.getItem("questions");
-const questions = raw ? JSON.parse(raw) : [];
-let i = 0;
-let answered = false;
-
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
+
 function show(){
   answered = false;
   const q = questions[i];
+
   document.getElementById("q").textContent = q.question;
-  document.getElementById("progress").textContent = `${i+1} / ${questions.length}`;
+  document.getElementById("progress").textContent =
+    `${i+1} / ${questions.length}`;
 
   const area = document.getElementById("choices");
   area.innerHTML = "";
+
   shuffle(q.choices);
   q.choices.forEach(text=>{
     const b = document.createElement("button");
@@ -213,75 +140,46 @@ function show(){
     area.appendChild(b);
   });
 }
+
+/* =====================================================
+   回答処理
+===================================================== */
 function answer(btn){
   if(answered) return;
   answered = true;
+
   document.querySelectorAll(".choice").forEach(b=>{
-    if(b.textContent === questions[i].answer) b.classList.add("correct");
-    else if(b === btn) b.classList.add("wrong");
+    if(b.textContent === questions[i].answer){
+      b.classList.add("correct");
+    }else if(b === btn){
+      b.classList.add("wrong");
+    }
     b.disabled = true;
   });
-}
-function next(){
-  if(!answered) return alert("回答してください");
-  i++;
-  i >= questions.length ? finish() : show();
+
+  // 🔥 1問でも解いたら学習成立
+  recordStudy();
 }
 
 /* =====================================================
-   終了処理（Legendary分岐）
+   次へ / 終了
 ===================================================== */
-function finish(){
-  const score = addGrowthScore();
-  const type = drawHeroType(score);
-  const hero = getHeroByType(type);
-  saveHero(hero);
+function next(){
+  if(!answered) return alert("回答してください");
 
-  type === "legendary"
-    ? showLegendaryDraw(hero)
-    : showHeroOverlay(type, hero);
+  i++;
+  if(i >= questions.length){
+    location.href = "index.html";
+  }else{
+    show();
+  }
 }
 
-/* ===== Legendary演出 ===== */
-function showLegendaryDraw(hero){
-  const overlay = document.createElement("div");
-  overlay.className = "overlay";
-  overlay.innerHTML = `<div class="card-back">LEGENDARY</div>`;
-  document.body.appendChild(overlay);
-
-  setTimeout(()=>{
-    overlay.innerHTML = `
-      <div class="hero legendary">
-        <h2>${hero.name}</h2>
-        <p>（${hero.job}）</p>
-        <p>「${hero.quote}」</p>
-        <button style="margin-top:16px" onclick="location.href='heroes.html'">
-          図鑑へ
-        </button>
-      </div>
-    `;
-  },1200);
-}
-
-/* ===== 通常カード ===== */
-function showHeroOverlay(type, hero){
-  const overlay = document.createElement("div");
-  overlay.className = "overlay";
-  overlay.innerHTML = `
-    <div class="hero ${type}">
-      <h2>${hero.name}</h2>
-      <p>（${hero.job}）</p>
-      <p>「${hero.quote}」</p>
-      <button style="margin-top:16px" onclick="location.href='heroes.html'">
-        図鑑へ
-      </button>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-}
-
-/* 初期表示 */
-questions.length ? show()
+/* =====================================================
+   初期表示
+===================================================== */
+questions.length
+  ? show()
   : document.getElementById("q").textContent = "⚠ 問題が登録されていません";
 </script>
 
