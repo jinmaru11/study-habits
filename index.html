@@ -153,22 +153,26 @@ main{
   }
 })();
 
-/* ===== 成長スコア：未学習リセット判定 ===== */
+/* =====================================================
+   成長スコア：未学習リセット判定
+   ※ 0には絶対ならず、必ず「1」に戻る
+===================================================== */
 (function normalizeGrowth(){
-  const today = new Date();
   const last = localStorage.getItem("lastStudyDate");
   if(!last) return;
 
+  const today = new Date();
   const lastDate = new Date(last);
-  const diff =
-    Math.floor((today - lastDate) / (1000*60*60*24));
+  const diff = Math.floor(
+    (today - lastDate) / (1000 * 60 * 60 * 24)
+  );
 
   if(diff > 1){
     localStorage.setItem("growthScore", 1);
   }
 })();
 
-/* ===== 成長スコア表示 ===== */
+/* ===== 成長スコア表示（保険付き） ===== */
 document.getElementById("score").textContent =
   (parseFloat(localStorage.getItem("growthScore")) || 1).toFixed(2);
 
@@ -176,11 +180,12 @@ document.getElementById("score").textContent =
 function calcStreak(){
   const h = JSON.parse(localStorage.getItem("studyHistory")) || {};
   let d = new Date(), s = 0;
+
   while(true){
     const k = d.toISOString().slice(0,10);
     if(h[k]){
       s++;
-      d.setDate(d.getDate()-1);
+      d.setDate(d.getDate() - 1);
     }else{
       break;
     }
