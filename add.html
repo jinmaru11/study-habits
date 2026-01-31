@@ -3,94 +3,187 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>問題追加</title>
+<title>問題追加｜Study Habits</title>
 
 <style>
-body{margin:0;background:#f4f4f4;font-family:-apple-system}
-main{padding:16px;max-width:600px;margin:auto}
-input,textarea{width:100%;padding:8px;margin-top:8px}
-button{margin-top:8px}
+body{
+  margin:0;
+  background:#f4f4f4;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+header{
+  background:#b00020;
+  color:white;
+  text-align:center;
+  padding:16px;
+  font-weight:bold;
+}
+main{
+  max-width:600px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:white;
+  padding:16px;
+  border-radius:12px;
+  margin-bottom:16px;
+}
+h2{
+  margin-top:0;
+  font-size:18px;
+}
+
+/* ===== 入力 ===== */
+input, textarea{
+  width:100%;
+  box-sizing:border-box;
+  padding:12px;
+  margin-top:8px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+textarea{
+  resize:vertical;
+}
+
+/* ===== ボタン ===== */
+.btn{
+  margin-top:12px;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-size:15px;
+}
+.primary{
+  background:#b00020;
+  color:white;
+}
+.sub{
+  background:#eee;
+}
+.danger{
+  background:#ccc;
+}
+.inline{
+  display:inline-block;
+  margin-left:8px;
+}
+
+/* ===== 不正解候補 ===== */
+.choice-row{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+.choice-row input{
+  flex:1;
+}
+.choice-row button{
+  padding:0 10px;
+}
+
+/* ===== 既存問題 ===== */
+.q-item{
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 </style>
 </head>
 
 <body>
+
+<header>問題を追加</header>
+
 <main>
-<h2>問題追加</h2>
 
-<input id="q" placeholder="問題文">
-<input id="a" placeholder="正解">
+<!-- ===== 新規追加 ===== -->
+<section class="card">
+  <h2>新しい問題</h2>
 
-<div id="wrongs"></div>
-<button onclick="addWrong()">不正解を追加</button>
+  <input id="question" placeholder="問題文">
+  <input id="answer" placeholder="正解">
 
-<textarea id="exp" placeholder="解説（任意）"></textarea>
+  <div id="wrongs"></div>
 
-<button onclick="save()">保存</button>
+  <button class="btn sub" onclick="addWrong()">不正解を追加</button>
 
-<h3>既存問題</h3>
-<div id="list"></div>
+  <textarea id="explain" placeholder="解説（任意）"></textarea>
+
+  <button class="btn primary" onclick="save()">保存</button>
+</section>
+
+<!-- ===== 既存問題 ===== -->
+<section class="card">
+  <h2>既存問題</h2>
+  <div id="list"></div>
+</section>
+
 </main>
 
 <script>
-let wrongs=[];
+let questions =
+  JSON.parse(localStorage.getItem("questions")) || [];
 
-function addWrong(v=""){
-  const i=wrongs.length;
-  wrongs.push(v);
-  renderWrongs();
-}
-function removeWrong(i){
-  wrongs.splice(i,1);
-  renderWrongs();
-}
-function renderWrongs(){
-  const d=document.getElementById("wrongs");
-  d.innerHTML="";
-  wrongs.forEach((w,i)=>{
-    d.innerHTML+=`
-      <div>
-        <input value="${w}" oninput="wrongs[${i}]=this.value">
-        <button onclick="removeWrong(${i})">削除</button>
-      </div>`;
-  });
+/* ===== 不正解候補 ===== */
+function addWrong(val=""){
+  const d=document.createElement("div");
+  d.className="choice-row";
+  d.innerHTML=`
+    <input placeholder="不正解" value="${val}">
+    <button class="btn danger" onclick="this.parentElement.remove()">削除</button>
+  `;
+  document.getElementById("wrongs").appendChild(d);
 }
 
+/* ===== 保存 ===== */
 function save(){
-  const qs=
-    JSON.parse(localStorage.getItem("questions"))||[];
-  qs.push({
-    question:q.value,
-    answer:a.value,
-    choices:[a.value,...wrongs],
-    explanation:exp.value||""
+  const q=document.getElementById("question").value.trim();
+  const a=document.getElementById("answer").value.trim();
+  if(!q||!a) return alert("問題文と正解は必須です");
+
+  const wrongs=[...document.querySelectorAll("#wrongs input")]
+    .map(i=>i.value).filter(v=>v);
+
+  const choices=[a,...wrongs].sort(()=>Math.random()-0.5);
+
+  questions.push({
+    question:q,
+    answer:a,
+    choices:choices,
+    explain:document.getElementById("explain").value || ""
   });
-  localStorage.setItem("questions",JSON.stringify(qs));
+
+  localStorage.setItem("questions",JSON.stringify(questions));
   location.reload();
 }
 
-function renderList(){
-  const qs=
-    JSON.parse(localStorage.getItem("questions"))||[];
-  const d=document.getElementById("list");
-  d.innerHTML="";
-  qs.forEach((x,i)=>{
-    d.innerHTML+=`
-      <div>
-        ${x.question}
-        <button onclick="del(${i})">削除</button>
-      </div>`;
+/* ===== 既存問題表示 ===== */
+function render(){
+  const l=document.getElementById("list");
+  l.innerHTML="";
+  questions.forEach((q,i)=>{
+    const d=document.createElement("div");
+    d.className="q-item";
+    d.innerHTML=`
+      <div>${q.question}</div>
+      <button class="btn danger inline" onclick="del(${i})">削除</button>
+    `;
+    l.appendChild(d);
   });
 }
 function del(i){
-  const qs=
-    JSON.parse(localStorage.getItem("questions"))||[];
-  qs.splice(i,1);
-  localStorage.setItem("questions",JSON.stringify(qs));
-  renderList();
+  if(!confirm("削除しますか？"))return;
+  questions.splice(i,1);
+  localStorage.setItem("questions",JSON.stringify(questions));
+  render();
 }
-
-renderList();
-addWrong();
+render();
 </script>
+
 </body>
 </html>
