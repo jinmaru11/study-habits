@@ -51,7 +51,7 @@ button.next{
   color:white;
 }
 
-/* ===== 偉人カード演出（後続STEP用） ===== */
+/* ===== 偉人カード演出（STEP3用） ===== */
 .overlay{
   position:fixed;
   inset:0;
@@ -101,19 +101,68 @@ button.next{
 </main>
 
 <script>
-/* ===== 成長スコア ===== */
+/* =====================================================
+   成長スコア
+===================================================== */
 function getGrowthScore(){
   return Number(localStorage.getItem("growthScore") || 0);
 }
 
 function addGrowthScore(){
   const current = getGrowthScore();
-  const next = Math.round((current + 0.1) * 10) / 10; // 小数誤差対策
+  const next = Math.round((current + 0.1) * 10) / 10;
   localStorage.setItem("growthScore", next);
   return next;
 }
 
-/* ===== 問題 ===== */
+/* =====================================================
+   偉人データ（軽量）
+===================================================== */
+const HEROES = {
+  common: [
+    { name:"エジソン", quote:"天才とは1%のひらめきと99%の努力である" },
+    { name:"ダーウィン", quote:"生き残るのは最も強い者ではない" },
+    { name:"ナポレオン", quote:"勝利は最も忍耐強い者にもたらされる" }
+  ],
+  rare: [
+    { name:"アインシュタイン", quote:"想像力は知識より重要だ" },
+    { name:"ガリレオ", quote:"それでも地球は動いている" }
+  ],
+  legendary: [
+    { name:"レオナルド・ダ・ヴィンチ", quote:"学ぶことをやめた者は老いる" }
+  ]
+};
+
+/* =====================================================
+   偉人抽選ロジック
+===================================================== */
+function drawHero(growthScore){
+  let table = [{ type:"common", rate:75 }];
+
+  if(growthScore >= 2){
+    table.push({ type:"rare", rate:22 });
+  }
+  if(growthScore >= 5){
+    table.push({ type:"legendary", rate:3 });
+  }
+
+  const total = table.reduce((s,x)=>s+x.rate,0);
+  let r = Math.random() * total;
+
+  for(const t of table){
+    if(r < t.rate) return t.type;
+    r -= t.rate;
+  }
+}
+
+function getHeroByType(type){
+  const list = HEROES[type];
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+/* =====================================================
+   問題
+===================================================== */
 const raw = localStorage.getItem("questions");
 const questions = raw ? JSON.parse(raw) : [];
 
@@ -122,11 +171,9 @@ if(questions.length === 0){
     "⚠ 問題が登録されていません";
 }
 
-/* ===== 状態 ===== */
 let i = 0;
 let answered = false;
 
-/* ===== シャッフル ===== */
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j = Math.floor(Math.random()*(i+1));
@@ -134,7 +181,6 @@ function shuffle(arr){
   }
 }
 
-/* ===== 表示 ===== */
 function show(){
   answered = false;
   const q = questions[i];
@@ -158,7 +204,6 @@ function show(){
   });
 }
 
-/* ===== 回答 ===== */
 function answer(btn, text){
   if(answered) return;
   answered = true;
@@ -173,7 +218,6 @@ function answer(btn, text){
   });
 }
 
-/* ===== 次へ ===== */
 function next(){
   if(!answered) return alert("回答してください");
   i++;
@@ -184,19 +228,26 @@ function next(){
   }
 }
 
-/* ===== 終了 ===== */
+/* =====================================================
+   終了（STEP2）
+===================================================== */
 function finish(){
   const score = addGrowthScore();
+  const rarity = drawHero(score);
+  const hero = getHeroByType(rarity);
 
   alert(
-    "本日の学習を完了しました！\n" +
-    "成長スコア：" + score
+    "本日の学習を完了しました！\n\n" +
+    "成長スコア：" + score + "\n\n" +
+    "【" + rarity.toUpperCase() + "】\n" +
+    hero.name + "\n" +
+    "「" + hero.quote + "」"
   );
 
   location.href = "index.html";
 }
 
-/* ===== 初期表示 ===== */
+/* 初期表示 */
 if(questions.length > 0){
   show();
 }
