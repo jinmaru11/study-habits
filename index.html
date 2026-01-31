@@ -57,9 +57,15 @@ main{
 /* ===== カレンダー ===== */
 .calendar-header{
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
+  gap:8px;
   margin-bottom:8px;
+}
+.month-area{
+  display:flex;
+  align-items:center;
+  gap:8px;
 }
 .month-btn{
   border:none;
@@ -68,6 +74,13 @@ main{
   width:32px;
   height:32px;
   border-radius:50%;
+}
+.today-btn{
+  border:none;
+  background:#eee;
+  padding:6px 12px;
+  border-radius:8px;
+  font-size:13px;
 }
 #calendar{
   display:grid;
@@ -139,7 +152,12 @@ main{
 <section class="card">
   <div class="calendar-header">
     <button class="month-btn" onclick="prevMonth()">‹</button>
-    <div id="monthTitle"></div>
+
+    <div class="month-area">
+      <div id="monthTitle"></div>
+      <button class="today-btn" onclick="goToday()">今日</button>
+    </div>
+
     <button class="month-btn" onclick="nextMonth()">›</button>
   </div>
   <div id="calendar"></div>
@@ -186,7 +204,7 @@ function render(){
   const hist=JSON.parse(localStorage.getItem("studyHistory"))||{};
   const today=new Date().toISOString().slice(0,10);
 
-  ["日","月","火","水","木","金","土"].forEach(d=>{
+  ["日","月","火","水","水","金","土"].forEach(d=>{
     const e=document.createElement("div");
     e.textContent=d;
     e.style.fontWeight="bold";
@@ -207,11 +225,26 @@ function render(){
     cal.appendChild(c);
   }
 }
-function prevMonth(){ m--; if(m<0){m=11;y--;} render(); }
-function nextMonth(){ m++; if(m>11){m=0;y++;} render(); }
+
+function prevMonth(){
+  m--;
+  if(m<0){m=11;y--;}
+  render();
+}
+function nextMonth(){
+  m++;
+  if(m>11){m=0;y++;}
+  render();
+}
+function goToday(){
+  const t=new Date();
+  y=t.getFullYear();
+  m=t.getMonth();
+  render();
+}
 render();
 
-/* ===== 偉人カード表示 ===== */
+/* ===== 偉人カード ===== */
 const heroes=
   JSON.parse(localStorage.getItem("heroCards"))||[];
 const box=document.getElementById("heroes");
