@@ -51,13 +51,6 @@ input,textarea{
 }
 .primary{background:#b00020;color:white;}
 .secondary{background:#eee;color:#333;}
-
-.q-item{
-  padding:10px 0;
-  border-bottom:1px solid #eee;
-  display:flex;
-  justify-content:space-between;
-}
 </style>
 </head>
 
@@ -67,6 +60,7 @@ input,textarea{
 
 <main>
 
+<!-- 問題追加のみ -->
 <section class="card">
 <h2>新しい問題（4択）</h2>
 
@@ -84,12 +78,7 @@ input,textarea{
 <button class="btn primary" onclick="save()">保存</button>
 </section>
 
-<section class="card">
-<h2>既存問題</h2>
-<div id="list"></div>
-</section>
-
-<!-- ★ ナビゲーションボタン -->
+<!-- ナビゲーション -->
 <section class="card">
   <button class="btn primary"
     onclick="location.href='quiz.html'">
@@ -120,38 +109,13 @@ function save(){
   questions.push({
     question: q,
     choices: cs,
-    answer: cs[0], // 一番上が正解
+    answer: cs[0], // 常に一番上が正解
     explain: document.getElementById("explain").value || ""
   });
 
   localStorage.setItem("questions", JSON.stringify(questions));
   location.reload();
 }
-
-function render(){
-  const l = document.getElementById("list");
-  l.innerHTML = "";
-  questions.forEach((q,i)=>{
-    const d = document.createElement("div");
-    d.className = "q-item";
-    d.innerHTML = `
-      <div>${q.question}</div>
-      <button class="btn secondary" onclick="del(${i})">
-        削除
-      </button>
-    `;
-    l.appendChild(d);
-  });
-}
-
-function del(i){
-  if(!confirm("削除しますか？")) return;
-  questions.splice(i,1);
-  localStorage.setItem("questions", JSON.stringify(questions));
-  render();
-}
-
-render();
 </script>
 
 </body>
