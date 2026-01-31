@@ -99,6 +99,7 @@ button.next{
 </main>
 
 <script>
+  alert("QUIZ: " + localStorage.getItem("questions"));
 /* ===== 問題 ===== */
 const questions =
   JSON.parse(localStorage.getItem("questions")) || [];
